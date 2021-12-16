@@ -1,8 +1,5 @@
-import { Endpoints, RequestInterface } from "@octokit/types";
-import {
-  PaginatingEndpoints,
-  PaginateInterface,
-} from "@octokit/plugin-paginate-rest";
+import { RequestInterface } from "@octokit/types";
+import { PaginateInterface } from "@octokit/plugin-paginate-rest";
 
 export interface Octokit {
   paginate: PaginateInterface;
