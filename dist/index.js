@@ -9104,6 +9104,7 @@ dotenv.config({ path: __nccwpck_require__.ab + ".env" });
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(6252);
 const run = async () => {
+    /* Load the Inputs or process.env */
     const org = process.env.CI
         ? core.getInput("org", { required: false })
         : process.env.ORG;
