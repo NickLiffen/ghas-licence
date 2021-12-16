@@ -7549,15 +7549,49 @@ const dotenv = __importStar(__nccwpck_require__(437));
 dotenv.config({ path: __nccwpck_require__.ab + ".env" });
 const utils_1 = __nccwpck_require__(252);
 const run = async () => {
+    /* Setting the octokit client */
     const client = (await (0, utils_1.octokit)());
+    /* Getting all our billing information */
     const data = await (0, utils_1.billing)(client);
+    /* This tells us how many committers there are across all repos */
     const sum = data.repositories
         .map((element) => element.committers)
         .reduce((a, b) => a + b, 0);
     console.log(`Total committers across repos: ${sum}`);
     console.log(`Total GHAS committers: ${data.total_advanced_security_committers}`);
+    console.log(`Total repos with GHAS committers: ${data.repositories.length}`);
+    data.repositories.forEach(async (element) => {
+        const isCodeScanningBeingUsed = await (0, utils_1.checkCodeScanning)(client, element);
+        console.log(isCodeScanningBeingUsed);
+    });
 };
 run();
+
+
+/***/ }),
+
+/***/ 187:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.checkCodeScanning = void 0;
+const checkCodeScanning = async (client, repos) => {
+    const [owner, repo] = repos.repo.split("/");
+    let isCodeScanningBeingUsed = true;
+    const { data } = await client.request("GET /repos/{owner}/{repo}/code-scanning/analyses", {
+        owner,
+        repo,
+        page: 1,
+        per_page: 1,
+    });
+    if (data === undefined || data.length == 0) {
+        isCodeScanningBeingUsed = true;
+    }
+    return isCodeScanningBeingUsed;
+};
+exports.checkCodeScanning = checkCodeScanning;
 
 
 /***/ }),
@@ -7568,11 +7602,13 @@ run();
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.octokit = exports.billing = void 0;
+exports.checkCodeScanning = exports.octokit = exports.billing = void 0;
 const query_1 = __nccwpck_require__(813);
 Object.defineProperty(exports, "billing", ({ enumerable: true, get: function () { return query_1.billing; } }));
 const octokit_1 = __nccwpck_require__(409);
 Object.defineProperty(exports, "octokit", ({ enumerable: true, get: function () { return octokit_1.octokit; } }));
+const checkCodeScanning_1 = __nccwpck_require__(187);
+Object.defineProperty(exports, "checkCodeScanning", ({ enumerable: true, get: function () { return checkCodeScanning_1.checkCodeScanning; } }));
 
 
 /***/ }),
