@@ -7564,12 +7564,13 @@ const run = async () => {
     const reposWeThinkWeCanRemoveGHASOn = [];
     /* Let's run the repos through the criteria  */
     for (const repos of data.repositories) {
+        /* Checking to see if any code scanning analaysis has been uploaded */
         const isCodeScanningBeingUsed = await (0, utils_1.checkCodeScanning)(client, repos);
         isCodeScanningBeingUsed === false
             ? reposWeThinkWeCanRemoveGHASOn.push(repos)
             : null;
     }
-    console.log(reposWeThinkWeCanRemoveGHASOn);
+    console.log(`Total repos that are not using code scanning: ${reposWeThinkWeCanRemoveGHASOn.length}`);
 };
 run();
 
