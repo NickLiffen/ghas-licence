@@ -30,14 +30,16 @@ const run = async (): Promise<void> => {
   const reposWeThinkWeCanRemoveGHASOn = [];
 
   /* Let's run the repos through the criteria  */
-  data.repositories.forEach(async (element) => {
-    const isCodeScanningBeingUsed = await checkCodeScanning(client, element);
+  for (const repos of data.repositories) {
+    /* Checking to see if any code scanning analaysis has been uploaded */
+    const isCodeScanningBeingUsed = await checkCodeScanning(client, repos);
     isCodeScanningBeingUsed === false
-      ? reposWeThinkWeCanRemoveGHASOn.push(element)
+      ? reposWeThinkWeCanRemoveGHASOn.push(repos)
       : null;
-  });
-
-  console.log(reposWeThinkWeCanRemoveGHASOn.length);
+  }
+  console.log(
+    `Total repos that are not using code scanning: ${reposWeThinkWeCanRemoveGHASOn.length}`
+  );
 };
 
 run();

@@ -7552,18 +7552,24 @@ const run = async () => {
     /* Setting the octokit client */
     const client = (await (0, utils_1.octokit)());
     /* Getting all our billing information */
-    const data = await (0, utils_1.billing)(client);
+    const data = (await (0, utils_1.billing)(client));
     /* This tells us how many committers there are across all repos */
     const sum = data.repositories
         .map((element) => element.committers)
         .reduce((a, b) => a + b, 0);
+    /* Logging out some information  */
     console.log(`Total committers across repos: ${sum}`);
     console.log(`Total GHAS committers: ${data.total_advanced_security_committers}`);
     console.log(`Total repos with GHAS committers: ${data.repositories.length}`);
-    data.repositories.forEach(async (element) => {
-        const isCodeScanningBeingUsed = await (0, utils_1.checkCodeScanning)(client, element);
-        console.log(isCodeScanningBeingUsed);
-    });
+    const reposWeThinkWeCanRemoveGHASOn = [];
+    /* Let's run the repos through the criteria  */
+    for (const repos of data.repositories) {
+        const isCodeScanningBeingUsed = await (0, utils_1.checkCodeScanning)(client, repos);
+        isCodeScanningBeingUsed === false
+            ? reposWeThinkWeCanRemoveGHASOn.push(repos)
+            : null;
+    }
+    console.log(reposWeThinkWeCanRemoveGHASOn);
 };
 run();
 
@@ -7578,18 +7584,28 @@ run();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.checkCodeScanning = void 0;
 const checkCodeScanning = async (client, repos) => {
-    const [owner, repo] = repos.repo.split("/");
-    let isCodeScanningBeingUsed = true;
-    const { data } = await client.request("GET /repos/{owner}/{repo}/code-scanning/analyses", {
-        owner,
-        repo,
-        page: 1,
-        per_page: 1,
-    });
-    if (data === undefined || data.length == 0) {
-        isCodeScanningBeingUsed = true;
+    try {
+        const [owner, repo] = repos.repo.split("/");
+        let isCodeScanningBeingUsed = true;
+        const { data } = await client.request("GET /repos/{owner}/{repo}/code-scanning/analyses", {
+            owner,
+            repo,
+            page: 1,
+            per_page: 1,
+        });
+        if (data === undefined || data.length == 0) {
+            isCodeScanningBeingUsed = false;
+        }
+        return isCodeScanningBeingUsed;
     }
-    return isCodeScanningBeingUsed;
+    catch (e) {
+        if (e.response.data.message === "no analysis found") {
+            return false;
+        }
+        else {
+            throw new Error(e);
+        }
+    }
 };
 exports.checkCodeScanning = checkCodeScanning;
 
@@ -7658,7 +7674,15 @@ exports.octokit = octokit;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.billing = void 0;
-const query = async (requestParams, client) => await client.request("GET /orgs/{org}/settings/billing/advanced-security", requestParams);
+const query = async (requestParams, client) => {
+    try {
+        return await client.request("GET /orgs/{org}/settings/billing/advanced-security", requestParams);
+    }
+    catch (e) {
+        console.log("Error in making billing API Call");
+        throw new Error(e);
+    }
+};
 const billing = async (client, p = 1, reposWithGHASAC = [], ac = 0) => {
     const requestParams = {
         org: process.env.ORG,

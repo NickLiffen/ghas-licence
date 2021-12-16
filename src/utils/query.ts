@@ -9,11 +9,17 @@ import {
 const query = async (
   requestParams: RequestParams,
   client: Octokit
-): Promise<object> =>
-  await client.request(
-    "GET /orgs/{org}/settings/billing/advanced-security",
-    requestParams
-  );
+): Promise<object> => {
+  try {
+    return await client.request(
+      "GET /orgs/{org}/settings/billing/advanced-security",
+      requestParams
+    );
+  } catch (e: any) {
+    console.log("Error in making billing API Call");
+    throw new Error(e);
+  }
+};
 
 export const billing = async (
   client: Octokit,
