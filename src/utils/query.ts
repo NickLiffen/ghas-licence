@@ -23,12 +23,13 @@ const query = async (
 
 export const billing = async (
   client: Octokit,
+  githubOrg: string,
   p = 1 as number,
   reposWithGHASAC = [] as ReposWithGHASAC[],
   ac = 0 as number
 ): Promise<BillingAPIFunctionResponse> => {
   const requestParams = {
-    org: process.env.ORG as string,
+    org: githubOrg as string,
     per_page: 100 as number,
     page: p as number,
   };
@@ -59,11 +60,13 @@ export const billing = async (
     });
   }
 
+  /* If there is data, let's check if there is anymore data in the next page */
   if (data.repositories.length > 0) {
     const pageNumber = p + 1;
-    await billing(client, pageNumber, reposWithGHASAC, ac);
+    await billing(client, githubOrg, pageNumber, reposWithGHASAC, ac);
   }
 
+  /* No more data available, this is it folks! */
   return {
     total_advanced_security_committers: ac,
     repositories: reposWithGHASAC,

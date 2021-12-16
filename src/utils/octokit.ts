@@ -7,20 +7,20 @@ import { RateLimitOptions } from "../../types/common";
 
 const MyOctokit = Octokit.plugin(paginateRest, retry, throttling);
 
-export const octokit = async (): Promise<unknown> => {
-  const token = process.env.API_TOKEN as string;
-
+export const octokit = async (
+  token: string,
+  baseUrl: string
+): Promise<unknown> => {
   if (!token) {
     throw new Error(
       "No auth mechinsim. Please make sure you have a token OR app settings."
     );
   }
-
   const octokit = new MyOctokit({
     auth: token,
     previews: ["hellcat", "mercy", "machine-man"],
     request: { retries: 3 },
-    baseUrl: process.env.BASE_URL,
+    baseUrl,
     throttle: {
       onRateLimit: (options: RateLimitOptions) => {
         return options.request.retryCount <= 3;

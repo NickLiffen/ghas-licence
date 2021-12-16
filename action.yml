@@ -2,12 +2,19 @@ name: 'Action Name'
 author: 'NickLiffen'
 description: 'Action Description'
 inputs:
-  inputName:
-    description: 'Input Description'
+  org:
+    description: 'The GitHub Org Name that you would like to cleaup GHAS Licences On'
     required: true
+  token:
+    description: 'The GitHub Token. This will need to have access to the orgs private repos'
+    required: true
+  url:
+    description: 'The GitHub URL. The default is github.com, but you '
+    required: true
+    default: 'https://api.github.com'
 outputs:
-  outputName:
-    description: 'Output Description'
+  success:
+    description: 'Did it work'
 runs:
   using: 'node16'
   main: 'dist/index.js'
