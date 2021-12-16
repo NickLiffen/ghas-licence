@@ -19,7 +19,7 @@ export const checkCodeScanning = async (
   );
 
   if (data === undefined || data.length == 0) {
-    isCodeScanningBeingUsed = true;
+    isCodeScanningBeingUsed = false;
   }
 
   return isCodeScanningBeingUsed;
