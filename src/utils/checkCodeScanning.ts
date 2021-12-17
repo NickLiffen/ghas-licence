@@ -1,4 +1,5 @@
 import { Octokit } from "./octokitTypes";
+import * as core from "@actions/core";
 
 import { ReposWithGHASAC } from "../../types/common";
 
@@ -27,7 +28,10 @@ export const checkCodeScanning = async (
     if (e.response.data.message === "no analysis found") {
       return false;
     } else {
-      throw new Error(e);
+      core.setFailed(
+        `Something weird is going on with scanning repos for code scanning analysis: ${e}`
+      );
+      throw e;
     }
   }
 };

@@ -6,16 +6,17 @@ import * as artifact from "@actions/artifact";
 
 import { promises as fs } from "fs";
 
-import { billing, octokit, checkCodeScanning, getUniqueDataSet } from "./utils";
+import {
+  billing,
+  octokit,
+  checkCodeScanning,
+  getUniqueDataSet,
+  sum,
+} from "./utils";
 
-import { BillingAPIFunctionResponse, ReposWithGHASAC } from "../types/common";
+import { BillingAPIFunctionResponse } from "../types/common";
 
 import { Octokit } from "./utils/octokitTypes";
-
-const sum = (repo: ReposWithGHASAC[]) =>
-  repo
-    .map((element) => element.committers)
-    .reduce((a, b) => a + b, 0) as number;
 
 const run = async (): Promise<void> => {
   /* Load the Inputs or process.env */
@@ -38,15 +39,20 @@ const run = async (): Promise<void> => {
     org
   )) as BillingAPIFunctionResponse;
 
-  const { repositories } = verboseBillingData;
+  /* Verbose Repos are all Repos a GHAS active committer on. May not be unique GHAS Unique Active Committers. */
+  const { repositories: verboseRepos } = verboseBillingData;
 
-  const uniqueBillingData = await getUniqueDataSet(repositories);
+  /* Taking all the verbose dataset and parsing out the repos and their users which are unique */
+  const preciseillingData = await getUniqueDataSet(verboseRepos);
+
+  /* PrciseRepos Repos are all Repos a unique GHAS active committer on. */
+  const { repositories: prciseRepos } = preciseillingData;
 
   /* This tells us how many committers there are across all repos */
-  const verboseSum = await sum(repositories);
+  const verboseSum = await sum(verboseRepos);
 
   /* This tells us how many unique committers there are across all repos */
-  const uniqueSum = await sum(uniqueBillingData.repositories);
+  const uniqueSum = await sum(prciseRepos);
 
   /* Logging out some information */
   console.log(`Total committers across repos: ${verboseSum}`);
@@ -66,7 +72,7 @@ const run = async (): Promise<void> => {
   const reposWeThinkWeCanRemoveGHASOn = [];
 
   /* Let's run the repos through the criteria  */
-  for (const repos of repositories) {
+  for (const repos of verboseRepos) {
     /* Checking to see if any code scanning analaysis has been uploaded */
     try {
       const isCodeScanningBeingUsed = await checkCodeScanning(client, repos);
@@ -92,6 +98,9 @@ const run = async (): Promise<void> => {
       await artifactClient.uploadArtifact("./data.json", ["./data.json"], "./");
     } catch (e) {
       console.log(e);
+      core.setFailed(
+        `Something went wrong uploading the artefact to the actions workflow: ${e}`
+      );
       throw new Error("Failed to upload artifact");
     }
   }

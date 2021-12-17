@@ -15355,9 +15355,128 @@ const run = async () => {
     /* Setting the octokit client */
     const client = (await (0, utils_1.octokit)(token, url));
     /* Getting all our billing information */
-    const data = (await (0, utils_1.billing)(client, org));
-    const { repositories } = data;
+    const verboseBillingData = (await (0, utils_1.billing)(client, org));
+    /* Verbose Repos are all Repos a GHAS active committer on. May not be unique GHAS Unique Active Committers. */
+    const { repositories: verboseRepos } = verboseBillingData;
+    /* Taking all the verbose dataset and parsing out the repos and their users which are unique */
+    const preciseillingData = await (0, utils_1.getUniqueDataSet)(verboseRepos);
+    /* PrciseRepos Repos are all Repos a unique GHAS active committer on. */
+    const { repositories: prciseRepos } = preciseillingData;
+    /* This tells us how many committers there are across all repos */
+    const verboseSum = await (0, utils_1.sum)(verboseRepos);
+    /* This tells us how many unique committers there are across all repos */
+    const uniqueSum = await (0, utils_1.sum)(prciseRepos);
+    /* Logging out some information */
+    console.log(`Total committers across repos: ${verboseSum}`);
+    console.log(`Total unique committers across repos: ${uniqueSum}. These repos are the easist to cleanup.`);
+    console.log(`Total GHAS committers: ${verboseBillingData.total_advanced_security_committers}`);
+    console.log(`Total repos with GHAS committers: ${verboseBillingData.repositories.length}`);
+    /* This is the dataset that we think we are going to be able to clean GHAS up on */
+    const reposWeThinkWeCanRemoveGHASOn = [];
+    /* Let's run the repos through the criteria  */
+    for (const repos of verboseRepos) {
+        /* Checking to see if any code scanning analaysis has been uploaded */
+        try {
+            const isCodeScanningBeingUsed = await (0, utils_1.checkCodeScanning)(client, repos);
+            isCodeScanningBeingUsed === false
+                ? reposWeThinkWeCanRemoveGHASOn.push(repos)
+                : null;
+        }
+        catch (e) {
+            console.log(e);
+            throw new Error("Failed to run criteris on repos");
+        }
+    }
+    console.log(`Total repos that are not using code scanning: ${reposWeThinkWeCanRemoveGHASOn.length}`);
+    if (process.env.CI) {
+        try {
+            /* Let's write out the data to a file */
+            const stringData = JSON.stringify(reposWeThinkWeCanRemoveGHASOn, null, 2);
+            await fs_1.promises.writeFile("./data.json", stringData, "utf8");
+            /* Upload Action to Workflow Run */
+            const artifactClient = artifact.create();
+            await artifactClient.uploadArtifact("./data.json", ["./data.json"], "./");
+        }
+        catch (e) {
+            console.log(e);
+            core.setFailed(`Something went wrong uploading the artefact to the actions workflow: ${e}`);
+            throw new Error("Failed to upload artifact");
+        }
+    }
+};
+run();
+
+
+/***/ }),
+
+/***/ 9187:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.checkCodeScanning = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const checkCodeScanning = async (client, repos) => {
+    try {
+        const [owner, repo] = repos.repo.split("/");
+        let isCodeScanningBeingUsed = true;
+        const { data } = await client.request("GET /repos/{owner}/{repo}/code-scanning/analyses", {
+            owner,
+            repo,
+            page: 1,
+            per_page: 1,
+        });
+        if (data === undefined || data.length == 0) {
+            isCodeScanningBeingUsed = false;
+        }
+        return isCodeScanningBeingUsed;
+    }
+    catch (e) {
+        if (e.response.data.message === "no analysis found") {
+            return false;
+        }
+        else {
+            core.setFailed(`Something weird is going on with scanning repos for code scanning analysis: ${e}`);
+            throw e;
+        }
+    }
+};
+exports.checkCodeScanning = checkCodeScanning;
+
+
+/***/ }),
+
+/***/ 6173:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getUniqueDataSet = void 0;
+const getUniqueDataSet = async (repositories) => {
     const usersToRepos = [];
+    /*Looping through and finding all unique users. Unique users are defined as users who only commit
+    to a single GitHub Repository.*/
     for (const repos of repositories) {
         const { users } = repos;
         for (const user of users) {
@@ -15380,7 +15499,6 @@ const run = async () => {
             uniqueRepos.push(userToRepo.repos[0]);
         }
     }
-    console.log(`There are ${uniqueRepos.length} repos with unique committers`);
     /* Loop through the usersToRepos array, remove any element where the element's repos array is equal to one */
     const usersToReposFiltered = usersToRepos.filter((e) => e.repos.length === 1);
     const unique = {
@@ -15410,84 +15528,24 @@ const run = async () => {
             });
         }
     }
-    console.log(unique);
-    /* This tells us how many committers there are across all repos */
-    const sum = data.repositories
-        .map((element) => element.committers)
-        .reduce((a, b) => a + b, 0);
-    /* Logging out some information  */
-    console.log(`Total committers across repos: ${sum}`);
-    console.log(`Total GHAS committers: ${data.total_advanced_security_committers}`);
-    console.log(`Total repos with GHAS committers: ${data.repositories.length}`);
-    /* This is the dataset that we think we are going to be able to clean GHAS up on */
-    const reposWeThinkWeCanRemoveGHASOn = [];
-    /* Let's run the repos through the criteria  */
-    for (const repos of data.repositories) {
-        /* Checking to see if any code scanning analaysis has been uploaded */
-        try {
-            const isCodeScanningBeingUsed = await (0, utils_1.checkCodeScanning)(client, repos);
-            isCodeScanningBeingUsed === false
-                ? reposWeThinkWeCanRemoveGHASOn.push(repos)
-                : null;
-        }
-        catch (e) {
-            console.log(e);
-            throw new Error("Failed to run criteris on repos");
-        }
-    }
-    console.log(`Total repos that are not using code scanning: ${reposWeThinkWeCanRemoveGHASOn.length}`);
-    if (process.env.CI) {
-        try {
-            /* Let's write out the data to a file */
-            const stringData = JSON.stringify(reposWeThinkWeCanRemoveGHASOn, null, 2);
-            await fs_1.promises.writeFile("./data.json", stringData, "utf8");
-            /* Upload Action to Workflow Run */
-            const artifactClient = artifact.create();
-            await artifactClient.uploadArtifact("./data.json", ["./data.json"], "./");
-        }
-        catch (e) {
-            console.log(e);
-            throw new Error("Failed to upload artifact");
-        }
-    }
+    return unique;
 };
-run();
+exports.getUniqueDataSet = getUniqueDataSet;
 
 
 /***/ }),
 
-/***/ 9187:
+/***/ 9612:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.checkCodeScanning = void 0;
-const checkCodeScanning = async (client, repos) => {
-    try {
-        const [owner, repo] = repos.repo.split("/");
-        let isCodeScanningBeingUsed = true;
-        const { data } = await client.request("GET /repos/{owner}/{repo}/code-scanning/analyses", {
-            owner,
-            repo,
-            page: 1,
-            per_page: 1,
-        });
-        if (data === undefined || data.length == 0) {
-            isCodeScanningBeingUsed = false;
-        }
-        return isCodeScanningBeingUsed;
-    }
-    catch (e) {
-        if (e.response.data.message === "no analysis found") {
-            return false;
-        }
-        else {
-            throw new Error(e);
-        }
-    }
-};
-exports.checkCodeScanning = checkCodeScanning;
+exports.sum = void 0;
+const sum = (repo) => repo
+    .map((element) => element.committers)
+    .reduce((a, b) => a + b, 0);
+exports.sum = sum;
 
 
 /***/ }),
@@ -15498,13 +15556,17 @@ exports.checkCodeScanning = checkCodeScanning;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.checkCodeScanning = exports.octokit = exports.billing = void 0;
+exports.sum = exports.getUniqueDataSet = exports.checkCodeScanning = exports.octokit = exports.billing = void 0;
 const query_1 = __nccwpck_require__(1813);
 Object.defineProperty(exports, "billing", ({ enumerable: true, get: function () { return query_1.billing; } }));
 const octokit_1 = __nccwpck_require__(3409);
 Object.defineProperty(exports, "octokit", ({ enumerable: true, get: function () { return octokit_1.octokit; } }));
 const checkCodeScanning_1 = __nccwpck_require__(9187);
 Object.defineProperty(exports, "checkCodeScanning", ({ enumerable: true, get: function () { return checkCodeScanning_1.checkCodeScanning; } }));
+const collectUniqueDataset_1 = __nccwpck_require__(6173);
+Object.defineProperty(exports, "getUniqueDataSet", ({ enumerable: true, get: function () { return collectUniqueDataset_1.getUniqueDataSet; } }));
+const helpers_1 = __nccwpck_require__(9612);
+Object.defineProperty(exports, "sum", ({ enumerable: true, get: function () { return helpers_1.sum; } }));
 
 
 /***/ }),
