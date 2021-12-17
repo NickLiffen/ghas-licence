@@ -67,6 +67,7 @@ const run = async (): Promise<void> => {
   await fs.writeFile("./data.json", stringData, "utf8");
   const artifactClient = artifact.create();
 
+  /* Upload Action to Workflow Run */
   try {
     await artifactClient.uploadArtifact("./data.json", ["./data.json"], "./");
   } catch (e) {
