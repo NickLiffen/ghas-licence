@@ -6,14 +6,16 @@ import * as artifact from "@actions/artifact";
 
 import { promises as fs } from "fs";
 
-import { billing, octokit, checkCodeScanning } from "./utils";
+import { billing, octokit, checkCodeScanning, getUniqueDataSet } from "./utils";
 
-import {
-  BillingAPIFunctionResponse,
-  ArrayOfUsersToRepos,
-} from "../types/common";
+import { BillingAPIFunctionResponse, ReposWithGHASAC } from "../types/common";
 
 import { Octokit } from "./utils/octokitTypes";
+
+const sum = (repo: ReposWithGHASAC[]) =>
+  repo
+    .map((element) => element.committers)
+    .reduce((a, b) => a + b, 0) as number;
 
 const run = async (): Promise<void> => {
   /* Load the Inputs or process.env */
@@ -31,92 +33,40 @@ const run = async (): Promise<void> => {
   const client = (await octokit(token, url)) as Octokit;
 
   /* Getting all our billing information */
-  const data = (await billing(client, org)) as BillingAPIFunctionResponse;
+  const verboseBillingData = (await billing(
+    client,
+    org
+  )) as BillingAPIFunctionResponse;
 
-  const { repositories } = data;
+  const { repositories } = verboseBillingData;
 
-  const usersToRepos: ArrayOfUsersToRepos = [];
-
-  for (const repos of repositories) {
-    const { users } = repos;
-    for (const user of users) {
-      const { user_login } = user;
-      const userToRepo = {
-        user: user_login,
-        repos: [],
-      };
-      if (
-        !usersToRepos.find((e) => e.user === user_login && e.repos.length > 0)
-      ) {
-        usersToRepos.push(userToRepo);
-      }
-
-      const userIndex = usersToRepos.findIndex((e) => e.user === user_login);
-
-      usersToRepos[userIndex].repos.push(repos.repo);
-    }
-  }
-
-  /* Loop through the usersToRepos array, find which users are only in one repo, add them to the uniqueRepos array. */
-  const uniqueRepos: string[] = [];
-  for (const userToRepo of usersToRepos) {
-    if (userToRepo.repos.length === 1) {
-      uniqueRepos.push(userToRepo.repos[0]);
-    }
-  }
-
-  console.log(`There are ${uniqueRepos.length} repos with unique committers`);
-
-  /* Loop through the usersToRepos array, remove any element where the element's repos array is equal to one */
-  const usersToReposFiltered = usersToRepos.filter((e) => e.repos.length === 1);
-
-  const unique: BillingAPIFunctionResponse = {
-    total_advanced_security_committers: uniqueRepos.length,
-    repositories: [],
-  };
-
-  /* Loop through the usersToReposFiltered array, count the number of users in each repo, and add it to the unique object */
-  for (const userToRepo of usersToReposFiltered) {
-    const { user, repos } = userToRepo;
-    const repo = repos[0];
-    const index = unique.repositories.findIndex((e) => e.repo === repo);
-    if (index === -1) {
-      unique.repositories.push({
-        repo,
-        committers: 1,
-        users: [
-          {
-            user_login: user,
-          },
-        ],
-      });
-    } else {
-      unique.repositories[index].committers += 1;
-      unique.repositories[index].users.push({
-        user_login: user,
-      });
-    }
-  }
-
-  console.log(unique);
+  const uniqueBillingData = await getUniqueDataSet(repositories);
 
   /* This tells us how many committers there are across all repos */
-  const sum = data.repositories
-    .map((element) => element.committers)
-    .reduce((a, b) => a + b, 0) as number;
+  const verboseSum = await sum(repositories);
 
-  /* Logging out some information  */
-  console.log(`Total committers across repos: ${sum}`);
+  /* This tells us how many unique committers there are across all repos */
+  const uniqueSum = await sum(uniqueBillingData.repositories);
+
+  /* Logging out some information */
+  console.log(`Total committers across repos: ${verboseSum}`);
+
   console.log(
-    `Total GHAS committers: ${data.total_advanced_security_committers}`
+    `Total unique committers across repos: ${uniqueSum}. These repos are the easist to cleanup.`
   );
-  console.log(`Total repos with GHAS committers: ${data.repositories.length}`);
+
+  console.log(
+    `Total GHAS committers: ${verboseBillingData.total_advanced_security_committers}`
+  );
+  console.log(
+    `Total repos with GHAS committers: ${verboseBillingData.repositories.length}`
+  );
 
   /* This is the dataset that we think we are going to be able to clean GHAS up on */
   const reposWeThinkWeCanRemoveGHASOn = [];
 
   /* Let's run the repos through the criteria  */
-  for (const repos of data.repositories) {
+  for (const repos of repositories) {
     /* Checking to see if any code scanning analaysis has been uploaded */
     try {
       const isCodeScanningBeingUsed = await checkCodeScanning(client, repos);
