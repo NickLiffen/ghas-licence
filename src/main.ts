@@ -2,6 +2,9 @@ import * as dotenv from "dotenv";
 dotenv.config({ path: __dirname + "../../.env" });
 
 import * as core from "@actions/core";
+import * as artifact from "@actions/artifact";
+
+import { promises as fs } from "fs";
 
 import { billing, octokit, checkCodeScanning } from "./utils";
 
@@ -45,14 +48,31 @@ const run = async (): Promise<void> => {
   /* Let's run the repos through the criteria  */
   for (const repos of data.repositories) {
     /* Checking to see if any code scanning analaysis has been uploaded */
-    const isCodeScanningBeingUsed = await checkCodeScanning(client, repos);
-    isCodeScanningBeingUsed === false
-      ? reposWeThinkWeCanRemoveGHASOn.push(repos)
-      : null;
+    try {
+      const isCodeScanningBeingUsed = await checkCodeScanning(client, repos);
+      isCodeScanningBeingUsed === false
+        ? reposWeThinkWeCanRemoveGHASOn.push(repos)
+        : null;
+    } catch (e) {
+      console.log(e);
+      throw new Error("Failed to run criteris on repos");
+    }
   }
   console.log(
     `Total repos that are not using code scanning: ${reposWeThinkWeCanRemoveGHASOn.length}`
   );
+
+  /* Let's write out the data to a file */
+  const stringData = JSON.stringify(reposWeThinkWeCanRemoveGHASOn, null, 2);
+  await fs.writeFile("./data.json", stringData, "utf8");
+  const artifactClient = artifact.create();
+
+  try {
+    await artifactClient.uploadArtifact("./data.json", ["./data.json"], "./");
+  } catch (e) {
+    console.log(e);
+    throw new Error("Failed to upload artifact");
+  }
 };
 
 run();
