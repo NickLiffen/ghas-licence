@@ -9100,7 +9100,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const dotenv = __importStar(__nccwpck_require__(2437));
-dotenv.config({ path: __nccwpck_require__.ab + ".env" });
+dotenv.config({ path: __dirname + "../../.env" });
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(6252);
 const run = async () => {
