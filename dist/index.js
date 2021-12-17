@@ -15385,6 +15385,7 @@ const run = async () => {
     const stringData = JSON.stringify(reposWeThinkWeCanRemoveGHASOn, null, 2);
     await fs_1.promises.writeFile("./data.json", stringData, "utf8");
     const artifactClient = artifact.create();
+    /* Upload Action to Workflow Run */
     try {
         await artifactClient.uploadArtifact("./data.json", ["./data.json"], "./");
     }
