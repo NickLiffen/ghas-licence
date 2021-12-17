@@ -48,7 +48,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Setup Cloud Formation Linter with Latest Version
+      - name: Setup and run GHAS Licence Cleanup
         uses: nickliffen/ghas-licence@v1.0.0
         with:
           org: ${github_org}
