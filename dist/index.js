@@ -15336,7 +15336,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const dotenv = __importStar(__nccwpck_require__(2437));
-dotenv.config({ path: __dirname + "../../.env" });
+dotenv.config({ path: __nccwpck_require__.ab + ".env" });
 const core = __importStar(__nccwpck_require__(2186));
 const artifact = __importStar(__nccwpck_require__(2605));
 const fs_1 = __nccwpck_require__(7147);
@@ -15356,6 +15356,61 @@ const run = async () => {
     const client = (await (0, utils_1.octokit)(token, url));
     /* Getting all our billing information */
     const data = (await (0, utils_1.billing)(client, org));
+    const { repositories } = data;
+    const usersToRepos = [];
+    for (const repos of repositories) {
+        const { users } = repos;
+        for (const user of users) {
+            const { user_login } = user;
+            const userToRepo = {
+                user: user_login,
+                repos: [],
+            };
+            if (!usersToRepos.find((e) => e.user === user_login && e.repos.length > 0)) {
+                usersToRepos.push(userToRepo);
+            }
+            const userIndex = usersToRepos.findIndex((e) => e.user === user_login);
+            usersToRepos[userIndex].repos.push(repos.repo);
+        }
+    }
+    /* Loop through the usersToRepos array, find which users are only in one repo, add them to the uniqueRepos array. */
+    const uniqueRepos = [];
+    for (const userToRepo of usersToRepos) {
+        if (userToRepo.repos.length === 1) {
+            uniqueRepos.push(userToRepo.repos[0]);
+        }
+    }
+    console.log(`There are ${uniqueRepos.length} repos with unique committers`);
+    /* Loop through the usersToRepos array, remove any element where the element's repos array is equal to one */
+    const usersToReposFiltered = usersToRepos.filter((e) => e.repos.length === 1);
+    const unique = {
+        total_advanced_security_committers: uniqueRepos.length,
+        repositories: [],
+    };
+    /* Loop through the usersToReposFiltered array, count the number of users in each repo, and add it to the unique object */
+    for (const userToRepo of usersToReposFiltered) {
+        const { user, repos } = userToRepo;
+        const repo = repos[0];
+        const index = unique.repositories.findIndex((e) => e.repo === repo);
+        if (index === -1) {
+            unique.repositories.push({
+                repo,
+                committers: 1,
+                users: [
+                    {
+                        user_login: user,
+                    },
+                ],
+            });
+        }
+        else {
+            unique.repositories[index].committers += 1;
+            unique.repositories[index].users.push({
+                user_login: user,
+            });
+        }
+    }
+    console.log(unique);
     /* This tells us how many committers there are across all repos */
     const sum = data.repositories
         .map((element) => element.committers)
@@ -15381,17 +15436,19 @@ const run = async () => {
         }
     }
     console.log(`Total repos that are not using code scanning: ${reposWeThinkWeCanRemoveGHASOn.length}`);
-    /* Let's write out the data to a file */
-    const stringData = JSON.stringify(reposWeThinkWeCanRemoveGHASOn, null, 2);
-    await fs_1.promises.writeFile("./data.json", stringData, "utf8");
-    const artifactClient = artifact.create();
-    /* Upload Action to Workflow Run */
-    try {
-        await artifactClient.uploadArtifact("./data.json", ["./data.json"], "./");
-    }
-    catch (e) {
-        console.log(e);
-        throw new Error("Failed to upload artifact");
+    if (process.env.CI) {
+        try {
+            /* Let's write out the data to a file */
+            const stringData = JSON.stringify(reposWeThinkWeCanRemoveGHASOn, null, 2);
+            await fs_1.promises.writeFile("./data.json", stringData, "utf8");
+            /* Upload Action to Workflow Run */
+            const artifactClient = artifact.create();
+            await artifactClient.uploadArtifact("./data.json", ["./data.json"], "./");
+        }
+        catch (e) {
+            console.log(e);
+            throw new Error("Failed to upload artifact");
+        }
     }
 };
 run();
@@ -15523,7 +15580,11 @@ const billing = async (client, githubOrg, p = 1, reposWithGHASAC = [], ac = 0) =
         const postiveAC = data.repositories.filter((repo) => repo.advanced_security_committers > 0);
         /* Building the Array that I would like stored*/
         const structuredData = postiveAC.map((e) => {
-            return { repo: e.name, committers: e.advanced_security_committers };
+            return {
+                repo: e.name,
+                committers: e.advanced_security_committers,
+                users: e.advanced_security_committers_breakdown,
+            };
         });
         /* Storing the Array in a variable */
         structuredData.forEach((element) => {

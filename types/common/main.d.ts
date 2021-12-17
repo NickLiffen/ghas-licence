@@ -13,9 +13,19 @@ export type RequestParams = {
 export type ReposWithGHASAC = {
   repo: string;
   committers: number;
+  users: {
+    user_login: string;
+  }[];
 };
 
 export type BillingAPIFunctionResponse = {
   total_advanced_security_committers: number;
   repositories: ReposWithGHASAC[];
 };
+
+type userToRepo = {
+  user: string;
+  repos: string[];
+};
+
+export type ArrayOfUsersToRepos = userToRepo[];

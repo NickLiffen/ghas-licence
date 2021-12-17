@@ -51,7 +51,11 @@ export const billing = async (
 
     /* Building the Array that I would like stored*/
     const structuredData = postiveAC.map((e) => {
-      return { repo: e.name, committers: e.advanced_security_committers };
+      return {
+        repo: e.name,
+        committers: e.advanced_security_committers,
+        users: e.advanced_security_committers_breakdown,
+      };
     });
 
     /* Storing the Array in a variable */
