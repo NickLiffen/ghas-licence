@@ -15359,21 +15359,23 @@ const run = async () => {
     const client = (await (0, utils_1.octokit)(token, url));
     /* Getting all our billing information */
     const verboseBillingData = (await (0, utils_1.billing)(client, org));
-    /* Verbose Repos are all Repos a GHAS active committer on. May not be unique GHAS Unique Active Committers. */
+    /* Verbose Repos are all repos with a GHAS active committer on. May not be unique GHAS unique active mommitters. */
     const { repositories: verboseRepos } = verboseBillingData;
     /* Taking all the verbose dataset and parsing out the repos and their users which are unique */
     const preciseillingData = await (0, utils_1.getUniqueDataSet)(verboseRepos);
     /* PrciseRepos Repos are all Repos a unique GHAS active committer on. */
     const { repositories: prciseRepos } = preciseillingData;
+    console.log(prciseRepos);
     /* This tells us how many committers there are across all repos */
     const verboseSum = await (0, utils_1.sum)(verboseRepos);
     /* This tells us how many unique committers there are across all repos */
     const uniqueSum = await (0, utils_1.sum)(prciseRepos);
-    /* Logging out some information */
-    console.log(`Total committers across repos: ${verboseSum}`);
-    console.log(`Total unique committers across repos: ${uniqueSum}.`);
-    console.log(`Total GHAS committers: ${verboseBillingData.total_advanced_security_committers}`);
-    console.log(`Total repos with GHAS committers: ${verboseBillingData.repositories.length}`);
+    /* ----- START: Outputting data to logs ----- */
+    core.info(`Total GitHub repositories consuming GHAS Licences ${verboseBillingData.repositories.length}`);
+    core.info(`Total GitHub repositories consuming a unique GHAS Licence: ${preciseillingData.repositories.length}`);
+    core.info(`Total GitHub committers consuming GHAS Licences: ${verboseSum}`);
+    core.info(`Total GitHub committers contributing to only one GitHub repository: ${uniqueSum}`);
+    /* ----- END: Outputting data to logs ----- */
     /* This is the dataset that we think we are going to be able to clean GHAS up on */
     const reposWeThinkWeCanRemoveGHASOn = [];
     /* This is the dataset we are going to use the identiy the repos to remove */
@@ -15388,8 +15390,9 @@ const run = async () => {
                 : null;
         }
         catch (e) {
-            console.log(e);
-            throw new Error("Failed to run criteris on repos");
+            core.error("There was an error running the criteria. The error was:", e);
+            core.setFailed("There was an error running the criteria");
+            throw e;
         }
     }
     console.log(`Total repos that are not using code scanning: ${reposWeThinkWeCanRemoveGHASOn.length}`);
@@ -15403,9 +15406,9 @@ const run = async () => {
             await artifactClient.uploadArtifact("./data.json", ["./data.json"], "./");
         }
         catch (e) {
-            console.log(e);
-            core.setFailed(`Something went wrong uploading the artefact to the actions workflow: ${e}`);
-            throw new Error("Failed to upload artifact");
+            core.error("There was an error writing file to disk or uploading to the workflow run artefact section. The error is:", e);
+            core.setFailed("There was an error writing file to disk or uploading to the workflow run artefact section");
+            throw e;
         }
     }
 };
@@ -15614,19 +15617,40 @@ exports.octokit = octokit;
 /***/ }),
 
 /***/ 1813:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.billing = void 0;
+const core = __importStar(__nccwpck_require__(2186));
 const query = async (requestParams, client) => {
     try {
         return await client.request("GET /orgs/{org}/settings/billing/advanced-security", requestParams);
     }
     catch (e) {
-        console.log("Error in making billing API Call");
-        throw new Error(e);
+        core.error("Error in making billing API Call", e);
+        core.setFailed("Error in making billing API Call");
+        throw e;
     }
 };
 const billing = async (client, githubOrg, p = 1, reposWithGHASAC = [], ac = 0) => {

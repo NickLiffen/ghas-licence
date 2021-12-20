@@ -1,5 +1,7 @@
 import { Octokit, BillingType } from "./octokitTypes";
 
+import * as core from "@actions/core";
+
 import {
   RequestParams,
   ReposWithGHASAC,
@@ -16,8 +18,9 @@ const query = async (
       requestParams
     );
   } catch (e: any) {
-    console.log("Error in making billing API Call");
-    throw new Error(e);
+    core.error("Error in making billing API Call", e);
+    core.setFailed("Error in making billing API Call");
+    throw e;
   }
 };
 

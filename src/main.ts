@@ -12,6 +12,7 @@ import {
   checkCodeScanning,
   getUniqueDataSet,
   sum,
+  log,
 } from "./utils";
 
 import { BillingAPIFunctionResponse } from "../types/common";
@@ -42,7 +43,7 @@ const run = async (): Promise<void> => {
     org
   )) as BillingAPIFunctionResponse;
 
-  /* Verbose Repos are all Repos a GHAS active committer on. May not be unique GHAS Unique Active Committers. */
+  /* Verbose Repos are all repos with a GHAS active committer on. May not be unique GHAS unique active mommitters. */
   const { repositories: verboseRepos } = verboseBillingData;
 
   /* Taking all the verbose dataset and parsing out the repos and their users which are unique */
@@ -51,23 +52,14 @@ const run = async (): Promise<void> => {
   /* PrciseRepos Repos are all Repos a unique GHAS active committer on. */
   const { repositories: prciseRepos } = preciseillingData;
 
-  /* This tells us how many committers there are across all repos */
-  const verboseSum = await sum(verboseRepos);
-
   /* This tells us how many unique committers there are across all repos */
   const uniqueSum = await sum(prciseRepos);
 
-  /* Logging out some information */
-  console.log(`Total committers across repos: ${verboseSum}`);
+  /* ----- START: Outputting data to logs ----- */
 
-  console.log(`Total unique committers across repos: ${uniqueSum}.`);
+  await log(org, verboseBillingData, preciseillingData, uniqueSum);
 
-  console.log(
-    `Total GHAS committers: ${verboseBillingData.total_advanced_security_committers}`
-  );
-  console.log(
-    `Total repos with GHAS committers: ${verboseBillingData.repositories.length}`
-  );
+  /* ----- END: Outputting data to logs ----- */
 
   /* This is the dataset that we think we are going to be able to clean GHAS up on */
   const reposWeThinkWeCanRemoveGHASOn = [];
@@ -83,9 +75,10 @@ const run = async (): Promise<void> => {
       isCodeScanningBeingUsed === false
         ? reposWeThinkWeCanRemoveGHASOn.push(repos)
         : null;
-    } catch (e) {
-      console.log(e);
-      throw new Error("Failed to run criteris on repos");
+    } catch (e: any) {
+      core.error("There was an error running the criteria. The error was:", e);
+      core.setFailed("There was an error running the criteria");
+      throw e;
     }
   }
   console.log(
@@ -100,12 +93,15 @@ const run = async (): Promise<void> => {
       /* Upload Action to Workflow Run */
       const artifactClient = artifact.create();
       await artifactClient.uploadArtifact("./data.json", ["./data.json"], "./");
-    } catch (e) {
-      console.log(e);
-      core.setFailed(
-        `Something went wrong uploading the artefact to the actions workflow: ${e}`
+    } catch (e: any) {
+      core.error(
+        "There was an error writing file to disk or uploading to the workflow run artefact section. The error is:",
+        e
       );
-      throw new Error("Failed to upload artifact");
+      core.setFailed(
+        "There was an error writing file to disk or uploading to the workflow run artefact section"
+      );
+      throw e;
     }
   }
 };
