@@ -15365,16 +15365,10 @@ const run = async () => {
     const preciseillingData = await (0, utils_1.getUniqueDataSet)(verboseRepos);
     /* PrciseRepos Repos are all Repos a unique GHAS active committer on. */
     const { repositories: prciseRepos } = preciseillingData;
-    console.log(prciseRepos);
-    /* This tells us how many committers there are across all repos */
-    const verboseSum = await (0, utils_1.sum)(verboseRepos);
     /* This tells us how many unique committers there are across all repos */
     const uniqueSum = await (0, utils_1.sum)(prciseRepos);
     /* ----- START: Outputting data to logs ----- */
-    core.info(`Total GitHub repositories consuming GHAS Licences ${verboseBillingData.repositories.length}`);
-    core.info(`Total GitHub repositories consuming a unique GHAS Licence: ${preciseillingData.repositories.length}`);
-    core.info(`Total GitHub committers consuming GHAS Licences: ${verboseSum}`);
-    core.info(`Total GitHub committers contributing to only one GitHub repository: ${uniqueSum}`);
+    await (0, utils_1.log)(org, verboseBillingData, preciseillingData, uniqueSum);
     /* ----- END: Outputting data to logs ----- */
     /* This is the dataset that we think we are going to be able to clean GHAS up on */
     const reposWeThinkWeCanRemoveGHASOn = [];
@@ -15564,7 +15558,7 @@ exports.sum = sum;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.sum = exports.getUniqueDataSet = exports.checkCodeScanning = exports.octokit = exports.billing = void 0;
+exports.log = exports.sum = exports.getUniqueDataSet = exports.checkCodeScanning = exports.octokit = exports.billing = void 0;
 const query_1 = __nccwpck_require__(1813);
 Object.defineProperty(exports, "billing", ({ enumerable: true, get: function () { return query_1.billing; } }));
 const octokit_1 = __nccwpck_require__(3409);
@@ -15575,6 +15569,49 @@ const collectUniqueDataset_1 = __nccwpck_require__(6173);
 Object.defineProperty(exports, "getUniqueDataSet", ({ enumerable: true, get: function () { return collectUniqueDataset_1.getUniqueDataSet; } }));
 const helpers_1 = __nccwpck_require__(9612);
 Object.defineProperty(exports, "sum", ({ enumerable: true, get: function () { return helpers_1.sum; } }));
+const log_1 = __nccwpck_require__(8410);
+Object.defineProperty(exports, "log", ({ enumerable: true, get: function () { return log_1.log; } }));
+
+
+/***/ }),
+
+/***/ 8410:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.log = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const log = async (org, verboseBillingData, preciseillingData, uniqueSum) => {
+    core.info(`Firstly, across your: ${org} organization, there are ${verboseBillingData.total_advanced_security_committers} total GitHub advanced security committers. E.G this is how many seats you are consuming`);
+    core.info(`Digging into that ${verboseBillingData.total_advanced_security_committers} active committers (seats consumed) number. We found ${verboseBillingData.repositories.length} GitHub repositories where an active committer is present/seat is being consumed`);
+    core.info(`Furthermore, out of them ${verboseBillingData.repositories.length} GitHub repositories where an active committer is present. We found ${preciseillingData.repositories.length} GitHub repositories where there is one or greater unique active committer(s) present. E.G unique is defined as only taking up a GitHub Advanced Security seat on that one repository`);
+    core.info(`As mentioned in the README, repositories with unique active committers are better to target, as disabling GitHub advanced security on them repositories will clean up a licence straight away. They only commit to that one repository; they are not taking up a licence across multiple repositories where you need to disable GitHub advanced security on them all.`);
+    core.info(`Now, if you was to disable GitHub advanced security on all ${preciseillingData.repositories.length} repositories, you would be saving a total of ${uniqueSum} seats. (Note: ${uniqueSum} may be higher then ${preciseillingData.repositories.length}, because one repository may have more then one unique active committer on) `);
+    core.info(`Now, if you was to disable GitHub advanced security on all ${verboseBillingData.repositories.length} repositories, you would be saving a total of ${verboseBillingData.total_advanced_security_committers} seats. (This should not be possible though as you would be disabling GitHub advanced security on all repositories in your organisation) `);
+    core.info(`Now we have found all repositories consuming GitHub advanced security seats, as well as all repositories with unique committers, let us go ahead and run some checks to see which repositories are the most likely inactive.`);
+};
+exports.log = log;
 
 
 /***/ }),
