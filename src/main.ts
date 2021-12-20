@@ -29,6 +29,9 @@ const run = async (): Promise<void> => {
   const url = process.env.CI
     ? core.getInput("url", { required: false })
     : (process.env.BASE_URL as string);
+  const level = process.env.CI
+    ? core.getInput("level", { required: false })
+    : (process.env.LEVEL as string);
 
   /* Setting the octokit client */
   const client = (await octokit(token, url)) as Octokit;
@@ -57,9 +60,7 @@ const run = async (): Promise<void> => {
   /* Logging out some information */
   console.log(`Total committers across repos: ${verboseSum}`);
 
-  console.log(
-    `Total unique committers across repos: ${uniqueSum}. These repos are the easist to cleanup.`
-  );
+  console.log(`Total unique committers across repos: ${uniqueSum}.`);
 
   console.log(
     `Total GHAS committers: ${verboseBillingData.total_advanced_security_committers}`
@@ -71,8 +72,11 @@ const run = async (): Promise<void> => {
   /* This is the dataset that we think we are going to be able to clean GHAS up on */
   const reposWeThinkWeCanRemoveGHASOn = [];
 
+  /* This is the dataset we are going to use the identiy the repos to remove */
+  const dataToUse = level === "verbose" ? verboseRepos : prciseRepos;
+
   /* Let's run the repos through the criteria  */
-  for (const repos of verboseRepos) {
+  for (const repos of dataToUse) {
     /* Checking to see if any code scanning analaysis has been uploaded */
     try {
       const isCodeScanningBeingUsed = await checkCodeScanning(client, repos);

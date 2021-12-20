@@ -12,6 +12,10 @@ inputs:
     description: 'The GitHub URL. The default is github.com, but you '
     required: true
     default: 'https://api.github.com'
+  level:
+    description: 'verbose|precise (see README.md for more details)'
+    required: true
+    default: 'precise'
 outputs:
   success:
     description: 'Did it work'
