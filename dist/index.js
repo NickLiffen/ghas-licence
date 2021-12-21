@@ -15848,7 +15848,7 @@ const uploadArtefact = async (reposWeThinkWeCanRemoveGHASOn) => {
         await fs_1.promises.writeFile(fileName, stringData, "utf8");
         /* Upload Action to Workflow Run */
         const artifactClient = artifact.create();
-        await artifactClient.uploadArtifact(`${+new Date()}-repos.json`, [`./${GITHUB_WORKFLOW}-${GITHUB_RUN_NUMBER}-${+new Date()}-repos.json`], `${GITHUB_WORKSPACE}`);
+        await artifactClient.uploadArtifact(`${+new Date()}-repos.json`, [`./${workflowName}-${GITHUB_RUN_NUMBER}-${+new Date()}-repos.json`], `${GITHUB_WORKSPACE}`);
     }
     catch (e) {
         core.error("There was an error writing file to disk or uploading to the workflow run artefact section. The error is:", e);
