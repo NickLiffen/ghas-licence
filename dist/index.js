@@ -15337,24 +15337,10 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const dotenv = __importStar(__nccwpck_require__(2437));
 dotenv.config({ path: __nccwpck_require__.ab + ".env" });
-const core = __importStar(__nccwpck_require__(2186));
-const artifact = __importStar(__nccwpck_require__(2605));
-const fs_1 = __nccwpck_require__(7147);
 const utils_1 = __nccwpck_require__(6252);
 const run = async () => {
     /* Load the Inputs or process.env */
-    const org = process.env.CI
-        ? core.getInput("org", { required: false })
-        : process.env.ORG;
-    const token = process.env.CI
-        ? core.getInput("token", { required: false })
-        : process.env.API_TOKEN;
-    const url = process.env.CI
-        ? core.getInput("url", { required: false })
-        : process.env.BASE_URL;
-    const level = process.env.CI
-        ? core.getInput("level", { required: false })
-        : process.env.LEVEL;
+    const [org, token, url, level] = await (0, utils_1.getInputs)();
     /* Setting the octokit client */
     const client = (await (0, utils_1.octokit)(token, url));
     /* Getting all our billing information */
@@ -15367,103 +15353,16 @@ const run = async () => {
     const { repositories: prciseRepos } = preciseillingData;
     /* This tells us how many unique committers there are across all repos */
     const uniqueSum = await (0, utils_1.sum)(prciseRepos);
-    /* ----- START: Outputting data to logs ----- */
+    /* Outputting data to logs */
     await (0, utils_1.log)(org, verboseBillingData, preciseillingData, uniqueSum);
-    /* ----- END: Outputting data to logs ----- */
-    /* This is the dataset that we think we are going to be able to clean GHAS up on */
-    const reposWeThinkWeCanRemoveGHASOn = [];
     /* This is the dataset we are going to use the identiy the repos to remove */
     const dataToUse = level === "verbose" ? verboseRepos : prciseRepos;
-    /* Let's run the repos through the criteria  */
-    for (const repos of dataToUse) {
-        /* Checking to see if any code scanning analaysis has been uploaded */
-        try {
-            const isCodeScanningBeingUsed = await (0, utils_1.checkCodeScanning)(client, repos);
-            isCodeScanningBeingUsed === false
-                ? reposWeThinkWeCanRemoveGHASOn.push(repos)
-                : null;
-        }
-        catch (e) {
-            core.error("There was an error running the criteria. The error was:", e);
-            core.setFailed("There was an error running the criteria");
-            throw e;
-        }
-    }
-    console.log(`Total repos that are not using code scanning: ${reposWeThinkWeCanRemoveGHASOn.length}`);
-    if (process.env.CI) {
-        try {
-            /* Let's write out the data to a file */
-            const stringData = JSON.stringify(reposWeThinkWeCanRemoveGHASOn, null, 2);
-            await fs_1.promises.writeFile("./data.json", stringData, "utf8");
-            /* Upload Action to Workflow Run */
-            const artifactClient = artifact.create();
-            await artifactClient.uploadArtifact("./data.json", ["./data.json"], "./");
-        }
-        catch (e) {
-            core.error("There was an error writing file to disk or uploading to the workflow run artefact section. The error is:", e);
-            core.setFailed("There was an error writing file to disk or uploading to the workflow run artefact section");
-            throw e;
-        }
-    }
+    /* This module coordinatates the criteria to be run to identify repos as good contenders to disable GHAS on */
+    const reposWeThinkWeCanRemoveGHASOn = await (0, utils_1.runCriteria)(dataToUse, client);
+    /* If we run this in Github Action then upload the artefact */
+    process.env.CI ? await (0, utils_1.uploadArtefact)(reposWeThinkWeCanRemoveGHASOn) : null;
 };
 run();
-
-
-/***/ }),
-
-/***/ 9187:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.checkCodeScanning = void 0;
-const core = __importStar(__nccwpck_require__(2186));
-const checkCodeScanning = async (client, repos) => {
-    try {
-        const [owner, repo] = repos.repo.split("/");
-        let isCodeScanningBeingUsed = true;
-        const { data } = await client.request("GET /repos/{owner}/{repo}/code-scanning/analyses", {
-            owner,
-            repo,
-            page: 1,
-            per_page: 1,
-        });
-        if (data === undefined || data.length == 0) {
-            isCodeScanningBeingUsed = false;
-        }
-        return isCodeScanningBeingUsed;
-    }
-    catch (e) {
-        if (e.response.data.message === "no analysis found") {
-            return false;
-        }
-        else {
-            core.setFailed(`Something weird is going on with scanning repos for code scanning analysis: ${e}`);
-            throw e;
-        }
-    }
-};
-exports.checkCodeScanning = checkCodeScanning;
 
 
 /***/ }),
@@ -15537,6 +15436,123 @@ exports.getUniqueDataSet = getUniqueDataSet;
 
 /***/ }),
 
+/***/ 9839:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.checkCodeScanning = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const checkCodeScanning = async (client, repos) => {
+    try {
+        const [owner, repo] = repos.repo.split("/");
+        let isCodeScanningBeingUsed = true;
+        const { data } = await client.request("GET /repos/{owner}/{repo}/code-scanning/analyses", {
+            owner,
+            repo,
+            page: 1,
+            per_page: 1,
+        });
+        if (data === undefined || data.length == 0) {
+            isCodeScanningBeingUsed = false;
+        }
+        return isCodeScanningBeingUsed;
+    }
+    catch (e) {
+        if (e.response.data.message === "no analysis found") {
+            return false;
+        }
+        else {
+            core.setFailed(`Something weird is going on with scanning repos for code scanning analysis: ${e}`);
+            throw e;
+        }
+    }
+};
+exports.checkCodeScanning = checkCodeScanning;
+
+
+/***/ }),
+
+/***/ 6484:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.checkCodeScanning = void 0;
+const checkCodeScanning_1 = __nccwpck_require__(9839);
+Object.defineProperty(exports, "checkCodeScanning", ({ enumerable: true, get: function () { return checkCodeScanning_1.checkCodeScanning; } }));
+
+
+/***/ }),
+
+/***/ 5197:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getInputs = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const getInputs = async () => {
+    const org = process.env.CI
+        ? core.getInput("org", { required: false })
+        : process.env.ORG;
+    const token = process.env.CI
+        ? core.getInput("token", { required: false })
+        : process.env.API_TOKEN;
+    const url = process.env.CI
+        ? core.getInput("url", { required: false })
+        : process.env.BASE_URL;
+    const level = process.env.CI
+        ? core.getInput("level", { required: false })
+        : process.env.LEVEL;
+    return [org, token, url, level];
+};
+exports.getInputs = getInputs;
+
+
+/***/ }),
+
 /***/ 9612:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -15558,19 +15574,23 @@ exports.sum = sum;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.log = exports.sum = exports.getUniqueDataSet = exports.checkCodeScanning = exports.octokit = exports.billing = void 0;
+exports.uploadArtefact = exports.runCriteria = exports.getInputs = exports.log = exports.sum = exports.getUniqueDataSet = exports.octokit = exports.billing = void 0;
 const query_1 = __nccwpck_require__(1813);
 Object.defineProperty(exports, "billing", ({ enumerable: true, get: function () { return query_1.billing; } }));
 const octokit_1 = __nccwpck_require__(3409);
 Object.defineProperty(exports, "octokit", ({ enumerable: true, get: function () { return octokit_1.octokit; } }));
-const checkCodeScanning_1 = __nccwpck_require__(9187);
-Object.defineProperty(exports, "checkCodeScanning", ({ enumerable: true, get: function () { return checkCodeScanning_1.checkCodeScanning; } }));
 const collectUniqueDataset_1 = __nccwpck_require__(6173);
 Object.defineProperty(exports, "getUniqueDataSet", ({ enumerable: true, get: function () { return collectUniqueDataset_1.getUniqueDataSet; } }));
 const helpers_1 = __nccwpck_require__(9612);
 Object.defineProperty(exports, "sum", ({ enumerable: true, get: function () { return helpers_1.sum; } }));
 const log_1 = __nccwpck_require__(8410);
 Object.defineProperty(exports, "log", ({ enumerable: true, get: function () { return log_1.log; } }));
+const getInputs_1 = __nccwpck_require__(5197);
+Object.defineProperty(exports, "getInputs", ({ enumerable: true, get: function () { return getInputs_1.getInputs; } }));
+const runCriteria_1 = __nccwpck_require__(4691);
+Object.defineProperty(exports, "runCriteria", ({ enumerable: true, get: function () { return runCriteria_1.runCriteria; } }));
+const uploadArtefact_1 = __nccwpck_require__(2332);
+Object.defineProperty(exports, "uploadArtefact", ({ enumerable: true, get: function () { return uploadArtefact_1.uploadArtefact; } }));
 
 
 /***/ }),
@@ -15731,6 +15751,107 @@ const billing = async (client, githubOrg, p = 1, reposWithGHASAC = [], ac = 0) =
     };
 };
 exports.billing = billing;
+
+
+/***/ }),
+
+/***/ 4691:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.runCriteria = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const criteria_1 = __nccwpck_require__(6484);
+const runCriteria = async (dataToUse, client) => {
+    /* This is the dataset that we think we are going to be able to clean GHAS up on */
+    const reposWeThinkWeCanRemoveGHASOn = [];
+    for (const repos of dataToUse) {
+        /* Checking to see if any code scanning analaysis has been uploaded */
+        try {
+            const isCodeScanningBeingUsed = await (0, criteria_1.checkCodeScanning)(client, repos);
+            isCodeScanningBeingUsed === false
+                ? reposWeThinkWeCanRemoveGHASOn.push(repos)
+                : null;
+        }
+        catch (e) {
+            core.error("There was an error running the criteria. The error was:", e);
+            core.setFailed("There was an error running the criteria");
+            throw e;
+        }
+    }
+    return reposWeThinkWeCanRemoveGHASOn;
+};
+exports.runCriteria = runCriteria;
+
+
+/***/ }),
+
+/***/ 2332:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.uploadArtefact = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const artifact = __importStar(__nccwpck_require__(2605));
+const fs_1 = __nccwpck_require__(7147);
+const uploadArtefact = async (reposWeThinkWeCanRemoveGHASOn) => {
+    try {
+        /* Let's write out the data to a file */
+        const stringData = JSON.stringify(reposWeThinkWeCanRemoveGHASOn, null, 2);
+        await fs_1.promises.writeFile("./data.json", stringData, "utf8");
+        /* Upload Action to Workflow Run */
+        const artifactClient = artifact.create();
+        await artifactClient.uploadArtifact("./data.json", ["./data.json"], "./");
+    }
+    catch (e) {
+        core.error("There was an error writing file to disk or uploading to the workflow run artefact section. The error is:", e);
+        core.setFailed("There was an error writing file to disk or uploading to the workflow run artefact section");
+        throw e;
+    }
+};
+exports.uploadArtefact = uploadArtefact;
 
 
 /***/ }),
