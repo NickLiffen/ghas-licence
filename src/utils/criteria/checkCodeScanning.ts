@@ -1,7 +1,7 @@
-import { Octokit } from "./octokitTypes";
+import { Octokit } from "../octokitTypes";
 import * as core from "@actions/core";
 
-import { ReposWithGHASAC } from "../../types/common";
+import { ReposWithGHASAC } from "../../../types/common/main";
 
 export const checkCodeScanning = async (
   client: Octokit,
