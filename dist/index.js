@@ -15845,15 +15845,7 @@ const uploadArtefact = async (reposWeThinkWeCanRemoveGHASOn) => {
             .toLowerCase();
         const stringData = JSON.stringify(reposWeThinkWeCanRemoveGHASOn, null, 2);
         const fileName = `${GITHUB_WORKSPACE}/${workflowName}-${+new Date()}-repos.json`;
-        console.log(`fileName`, fileName);
-        console.log("__dirname", __dirname);
-        await fs_1.promises.readdir(__dirname);
-        const beforeData = await fs_1.promises.readdir(__dirname);
-        console.log("beforeData", beforeData);
-        const result = await fs_1.promises.writeFile(fileName, stringData, "utf8");
-        const afterData = await fs_1.promises.readdir(__dirname);
-        console.log("afterData", afterData);
-        console.log("create file result", result);
+        await fs_1.promises.writeFile(fileName, stringData, "utf8");
         /* Upload Action to Workflow Run */
         const artifactClient = artifact.create();
         await artifactClient.uploadArtifact(`${+new Date()}-repos.json`, [fileName], `${GITHUB_WORKSPACE}`);
