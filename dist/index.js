@@ -15848,8 +15848,11 @@ const uploadArtefact = async (reposWeThinkWeCanRemoveGHASOn) => {
         console.log(`fileName`, fileName);
         console.log("__dirname", __dirname);
         await fs_1.promises.readdir(__dirname);
+        const beforeData = await fs_1.promises.readdir(__dirname);
+        console.log("beforeData", beforeData);
         const result = await fs_1.promises.writeFile(fileName, stringData, "utf8");
-        await fs_1.promises.readdir(__dirname);
+        const afterData = await fs_1.promises.readdir(__dirname);
+        console.log("afterData", afterData);
         console.log("create file result", result);
         /* Upload Action to Workflow Run */
         const artifactClient = artifact.create();

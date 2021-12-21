@@ -19,8 +19,11 @@ export const uploadArtefact = async (
     console.log(`fileName`, fileName);
     console.log("__dirname", __dirname);
     await fs.readdir(__dirname);
+    const beforeData = await fs.readdir(__dirname);
+    console.log("beforeData", beforeData);
     const result = await fs.writeFile(fileName, stringData, "utf8");
-    await fs.readdir(__dirname);
+    const afterData = await fs.readdir(__dirname);
+    console.log("afterData", afterData);
     console.log("create file result", result);
     /* Upload Action to Workflow Run */
     const artifactClient = artifact.create();
