@@ -1,0 +1,27 @@
+name: GitHub Advanced Security cleanup
+
+on: push
+
+jobs:
+  ghas-cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup and run GHAS Licence Cleanup (Precise)
+        uses: ./
+        with:
+          org: ${{ secrets.ORG }} 
+          token: ${{ secrets.TOKEN }} 
+          url: https://api.github.com
+          level: precise
+
+      - name: Setup and run GHAS Licence Cleanup (Verbose)
+        uses: ./
+        with:
+          org: ${{ secrets.ORG }} 
+          token: ${{ secrets.TOKEN }} 
+          url: https://api.github.com
+          level: verbose

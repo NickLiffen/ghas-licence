@@ -15837,9 +15837,11 @@ const core = __importStar(__nccwpck_require__(2186));
 const artifact = __importStar(__nccwpck_require__(2605));
 const fs_1 = __nccwpck_require__(7147);
 const uploadArtefact = async (reposWeThinkWeCanRemoveGHASOn) => {
+    const { GITHUB_REPOSITORY, GITHUB_WORKFLOW, GITHUB_RUN_NUMBER } = process.env;
     try {
         /* Let's write out the data to a file */
         const stringData = JSON.stringify(reposWeThinkWeCanRemoveGHASOn, null, 2);
+        const fileName = `${GITHUB_REPOSITORY}/${GITHUB_WORKFLOW}/${GITHUB_RUN_NUMBER}/${+new Date()}repos.json`;
         await fs_1.promises.writeFile("./data.json", stringData, "utf8");
         /* Upload Action to Workflow Run */
         const artifactClient = artifact.create();
