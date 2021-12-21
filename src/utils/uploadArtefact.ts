@@ -29,7 +29,7 @@ export const uploadArtefact = async (
     const artifactClient = artifact.create();
     await artifactClient.uploadArtifact(
       `${+new Date()}-repos.json`,
-      [`${GITHUB_WORKSPACE}/${workflowName}-${+new Date()}-repos.json`],
+      [fileName],
       `${GITHUB_WORKSPACE}`
     );
   } catch (e: any) {
