@@ -15837,20 +15837,23 @@ const core = __importStar(__nccwpck_require__(2186));
 const artifact = __importStar(__nccwpck_require__(2605));
 const fs_1 = __nccwpck_require__(7147);
 const uploadArtefact = async (reposWeThinkWeCanRemoveGHASOn) => {
-    const { GITHUB_WORKFLOW, GITHUB_RUN_NUMBER, GITHUB_WORKSPACE } = process.env;
+    const { GITHUB_WORKFLOW, GITHUB_WORKSPACE } = process.env;
     try {
         /* Let's write out the data to a file */
         const workflowName = GITHUB_WORKFLOW
             .replace(/\s+/g, "-")
             .toLowerCase();
         const stringData = JSON.stringify(reposWeThinkWeCanRemoveGHASOn, null, 2);
-        const fileName = `${GITHUB_WORKSPACE}/${workflowName}-${GITHUB_RUN_NUMBER}-${+new Date()}-repos.json`;
-        await fs_1.promises.writeFile(fileName, stringData, "utf8");
+        const fileName = `${GITHUB_WORKSPACE}/${workflowName}-${+new Date()}-repos.json`;
+        console.log(`fileName`, fileName);
+        console.log("__dirname", __dirname);
+        await fs_1.promises.readdir(__dirname);
+        const result = await fs_1.promises.writeFile(fileName, stringData, "utf8");
+        await fs_1.promises.readdir(__dirname);
+        console.log("create file result", result);
         /* Upload Action to Workflow Run */
         const artifactClient = artifact.create();
-        await artifactClient.uploadArtifact(`${+new Date()}-repos.json`, [
-            `${GITHUB_WORKSPACE}/${workflowName}-${GITHUB_RUN_NUMBER}-${+new Date()}-repos.json`,
-        ], `${GITHUB_WORKSPACE}`);
+        await artifactClient.uploadArtifact(`${+new Date()}-repos.json`, [`${GITHUB_WORKSPACE}/${workflowName}-${+new Date()}-repos.json`], `${GITHUB_WORKSPACE}`);
     }
     catch (e) {
         core.error("There was an error writing file to disk or uploading to the workflow run artefact section. The error is:", e);
