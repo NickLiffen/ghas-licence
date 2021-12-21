@@ -11,8 +11,11 @@ export const uploadArtefact = async (
   const { GITHUB_WORKFLOW, GITHUB_RUN_NUMBER, GITHUB_WORKSPACE } = process.env;
   try {
     /* Let's write out the data to a file */
+    const workflowName = (GITHUB_WORKFLOW as string)
+      .replace(/\s+/g, "-")
+      .toLowerCase() as string;
     const stringData = JSON.stringify(reposWeThinkWeCanRemoveGHASOn, null, 2);
-    const fileName = `${GITHUB_WORKSPACE}/${GITHUB_WORKFLOW}-${GITHUB_RUN_NUMBER}-${+new Date()}-repos.json`;
+    const fileName = `${GITHUB_WORKSPACE}/${workflowName}-${GITHUB_RUN_NUMBER}-${+new Date()}-repos.json`;
     await fs.writeFile(fileName, stringData, "utf8");
     /* Upload Action to Workflow Run */
     const artifactClient = artifact.create();
