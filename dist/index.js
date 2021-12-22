@@ -15360,7 +15360,9 @@ const run = async () => {
     /* This module coordinatates the criteria to be run to identify repos as good contenders to disable GHAS on */
     const reposWeThinkWeCanRemoveGHASOn = await (0, utils_1.runCriteria)(dataToUse, client);
     /* If we run this in Github Action then upload the artefact */
-    process.env.CI ? await (0, utils_1.uploadArtefact)(reposWeThinkWeCanRemoveGHASOn) : null;
+    process.env.CI
+        ? await (0, utils_1.uploadArtefact)(reposWeThinkWeCanRemoveGHASOn, level)
+        : null;
 };
 run();
 
@@ -15836,7 +15838,7 @@ exports.uploadArtefact = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const artifact = __importStar(__nccwpck_require__(2605));
 const fs_1 = __nccwpck_require__(7147);
-const uploadArtefact = async (reposWeThinkWeCanRemoveGHASOn) => {
+const uploadArtefact = async (reposWeThinkWeCanRemoveGHASOn, level) => {
     const { GITHUB_WORKFLOW, GITHUB_WORKSPACE } = process.env;
     try {
         /* Let's write out the data to a file */
@@ -15844,7 +15846,7 @@ const uploadArtefact = async (reposWeThinkWeCanRemoveGHASOn) => {
             .replace(/\s+/g, "-")
             .toLowerCase();
         const stringData = JSON.stringify(reposWeThinkWeCanRemoveGHASOn, null, 2);
-        const fileName = `${GITHUB_WORKSPACE}/${workflowName}-${+new Date()}-repos.json`;
+        const fileName = `${GITHUB_WORKSPACE}/${workflowName}-${level}-${+new Date()}-repos.json`;
         await fs_1.promises.writeFile(fileName, stringData, "utf8");
         /* Upload Action to Workflow Run */
         const artifactClient = artifact.create();
