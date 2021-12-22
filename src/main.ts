@@ -51,7 +51,9 @@ const run = async (): Promise<void> => {
   const reposWeThinkWeCanRemoveGHASOn = await runCriteria(dataToUse, client);
 
   /* If we run this in Github Action then upload the artefact */
-  process.env.CI ? await uploadArtefact(reposWeThinkWeCanRemoveGHASOn) : null;
+  process.env.CI
+    ? await uploadArtefact(reposWeThinkWeCanRemoveGHASOn, level)
+    : null;
 };
 
 run();

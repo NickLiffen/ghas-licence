@@ -6,7 +6,8 @@ import { ReposWithGHASAC } from "../../types/common";
 import { promises as fs } from "fs";
 
 export const uploadArtefact = async (
-  reposWeThinkWeCanRemoveGHASOn: ReposWithGHASAC[]
+  reposWeThinkWeCanRemoveGHASOn: ReposWithGHASAC[],
+  level: string
 ): Promise<void> => {
   const { GITHUB_WORKFLOW, GITHUB_WORKSPACE } = process.env;
   try {
@@ -15,7 +16,7 @@ export const uploadArtefact = async (
       .replace(/\s+/g, "-")
       .toLowerCase() as string;
     const stringData = JSON.stringify(reposWeThinkWeCanRemoveGHASOn, null, 2);
-    const fileName = `${GITHUB_WORKSPACE}/${workflowName}-${+new Date()}-repos.json`;
+    const fileName = `${GITHUB_WORKSPACE}/${workflowName}-${level}-${+new Date()}-repos.json`;
     await fs.writeFile(fileName, stringData, "utf8");
     /* Upload Action to Workflow Run */
     const artifactClient = artifact.create();
