@@ -15338,16 +15338,57 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const dotenv = __importStar(__nccwpck_require__(2437));
 dotenv.config({ path: __nccwpck_require__.ab + ".env" });
 const discover_1 = __nccwpck_require__(190);
+const disable_1 = __nccwpck_require__(4853);
 const general_1 = __nccwpck_require__(1236);
 const main = async () => {
     /* Load the Inputs or process.env */
     const [org, token, url, level, action] = await (0, general_1.getInputs)();
     /* Setting the octokit client */
     const client = (await (0, general_1.octokit)(token, url));
-    /* Run discover */
-    action === "discover" ? await (0, discover_1.run)(client, org, level) : null;
+    try {
+        /* Run discover */
+        action === "discover" ? await (0, discover_1.run)(client, org, level) : null;
+    }
+    catch (error) {
+        console.error(error);
+    }
+    try {
+        /* Run disable */
+        action === "disable" ? await (0, disable_1.run)(client, org) : null;
+    }
+    catch (error) {
+        console.error(error);
+    }
 };
 main();
+
+
+/***/ }),
+
+/***/ 4853:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.run = void 0;
+const main_1 = __nccwpck_require__(1027);
+Object.defineProperty(exports, "run", ({ enumerable: true, get: function () { return main_1.run; } }));
+
+
+/***/ }),
+
+/***/ 1027:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.run = void 0;
+const run = async (client, org) => {
+    console.log("yet to build disable");
+};
+exports.run = run;
 
 
 /***/ }),

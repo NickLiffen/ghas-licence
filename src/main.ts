@@ -1,7 +1,9 @@
 import * as dotenv from "dotenv";
 dotenv.config({ path: __dirname + "../../.env" });
 
-import { run } from "./utils/discover";
+import { run as discover } from "./utils/discover";
+
+import { run as disable } from "./utils/disable";
 
 import { octokit, getInputs, Octokit } from "./utils/general";
 
@@ -12,8 +14,19 @@ const main = async (): Promise<void> => {
   /* Setting the octokit client */
   const client = (await octokit(token, url)) as Octokit;
 
-  /* Run discover */
-  action === "discover" ? await run(client, org, level) : null;
+  try {
+    /* Run discover */
+    action === "discover" ? await discover(client, org, level) : null;
+  } catch (error) {
+    console.error(error);
+  }
+
+  try {
+    /* Run disable */
+    action === "disable" ? await disable(client, org) : null;
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 main();
