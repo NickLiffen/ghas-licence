@@ -14,7 +14,7 @@ inputs:
     required: true
   url:
     description: 'The GitHub URL. The default is github.com, but you '
-    required: true
+    required: false
     default: 'https://api.github.com'
   level:
     description: 'verbose|precise (see README.md for more details)'

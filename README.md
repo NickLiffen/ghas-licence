@@ -1,35 +1,34 @@
 # GitHub Advanced Security Licence Cleanup
 
-:construction: This project is still a work in progress :construction: 
-
 ## Introduction
 
-A GitHub Action informing you of repositories you could disable GitHub Advanced Security to save some licences based on criteria. 
+This GitHub Action informs you of repositories you could disable GitHub Advanced Security on to save some licences based on criteria. 
 
 ## Motivation
 
-Most companies that adopt GitHub Advanced Security enable it across their organization at once (a big bang approach) and tick the option automatically enabling GitHub Advanced Security on all new repositories. This is great as it gives the most comprehensive coverage from a security perspective. However, this means that some repositories will take a licence and never actually use GitHub Advanced Security, especially the code scanning functionality. This leads to the potential of GitHub Advanced Security licences being consumed without actually using it. 
+Most companies that adopt GitHub Advanced Security enable it across their organization all at once (a big bang approach) and tick the option automatically enabling GitHub Advanced Security on all new repositories. This is great as it gives the most comprehensive coverage from a security perspective. However, this means that some repositories will take a licence and never actually use GitHub Advanced Security, especially the code scanning functionality (e.g., lack of language support on the repository). This leads to the potential of GitHub Advanced Security licences being consumed without actually using it. This is called: "wasting a licence". 
 
 ## Description
 
 Taking the above into account, the purpose of this GitHub Action is to take a set of criteria into account and report to users which repositories can have GitHub Advanced Security disabled with the most negligible impact. For example, you wouldn't want to disable GitHub Advanced Security on a repository where maintainers use CodeQL daily. Or even third party SARIF tools. You would like to target the repositories that are not using the features available, so if GitHub Advanced Security is disabled, hopefully, the impact is minimal. 
 
-## Technical Detail
+## How this action works
 
-The way this GitHub Action works is:
+We collect all repositories consuming a GitHub Advanced Security licence using the [Get GitHub Advanced Security active committers for an organization](https://docs.github.com/en/rest/reference/billing#get-github-advanced-security-active-committers-for-an-organization) API endpoint. 
+ 
+What happens next depends on how broad/precise you would like to be. 
 
-1. Firstly, collects all the repositories using GitHub Advanced Security. It uses the [Get GitHub Advanced Security active committers for an organization](https://docs.github.com/en/rest/reference/billing#get-github-advanced-security-active-committers-for-an-organization) API to collect this data. 
-2. Secondly, we parse out any repositories that are not taking up GitHub Advanced Security committers. We do this because disabling GitHub Advanced Security on these repositories would not remove any GitHub Advanced Security licences from your pool. 
-3. Thirdly, now we have a list of repositories using GitHub Advanced Security and consuming licences; we then run a set of criteria on these repositories to see out of that list, which repositories can have GitHub Advanced Security disabled, with the most negligible impact. 
-4. Finally, the list is then uploaded to the workflow run as a JSON object for you to review. 
+- **verbose**: Verbose data contains repositories with greater than 0 active committers. E.G. repositories that consume a GitHub Advanced Security licence. 
+- **precise**: Precise data contains repositories with greater than 0 unique active committers. A unique active committer only commits to one repository. Meaning disabling GitHub Advanced Security on these repositories will straight away free up licences; based on how many unique active committers are on the repositories. 
 
-The criteria we ran can be found below for your review. Future work aims to give you the flexibility to weight criteria different, so you only remove GitHub Advanced Security on the repositories that you want to. Additionally, we would like to add a feature that loops through the JSON object and automatically disable GitHub Advanced Security after manually reviewing the list.
+The _problem_ with verbose data is disabling GitHub Advanced Security on these repositories _may not_ save you any GitHub Advanced Security licences. 
 
-## Technical Limitations
+Let's walk through a few example use cases explaining this: 
 
-There is one crucial aspect to know about the data that is returned: 
+- Verbose data is collected (one hundred repositories). We then run a set of criteria that scope down the repositories where GitHub Advanced Security can be disabled (ten repositories). GitHub Advanced Security is then disabled on ten repositories, but only one licence is saved. The reason is, most of the committees on these ten repositories also commit to other repositories outside of these ten. Meaning that disabling GitHub Advanced Security didn't save many licences, as committers are still committing on other repositories. 
+- Precise data is collected (thirty repositories). We then run a set of criteria that scope down the repositories where GitHub Advanced Security can be disabled (eight repositories). GitHub Advanced Security is then disabled on eight repositories, and we save ten licences. Ten licences were saved because on seven repositories, there was one unique active committer, but on one, there were three unique active committers. These committers were only committing to these repositories; that's why all the licences were saved. 
 
-1. No guarantee disabling GitHub Advanced Security on the repositories in the list will save any seats. This action takes data available programmatically and gives you the best guess outcome. The way that GitHub Advanced Security billing works are by an active committer. If you disable GitHub Advanced Security on a repository where a user is committing to a different repository, disabling GitHub Advanced Security will not save any licences. Eventually, the aim is this GitHub Action will be clever enough to know which repositories you can confidently disable GitHub Advanced Security on and save licences. Still, for now, it is very much a best guess effort.
+The default for this GitHub Action is always going to be precise data. The reason is its accuracy. However, there is a potential to save more licences with the verbose data option because the criteria is run on a broader set of repositories. The number of licences that this action could save is just a little more unknown. You can pick either verbose or precise. 
 
 ## Using this action 
 
@@ -48,31 +47,56 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      # Running the discover action on the org my-org using token token-123, only collecting precise data.
       - name: Setup and run GHAS Licence Cleanup
         uses: nickliffen/ghas-licence@v1.0.0
         with:
-          org: ${github_org}
-          token: ${github_token}
-          url: https://api.github.com
+          org: my-org
+          token: token-123
+
+      # Running the discover action on the org my-org using token token-123, on the enterprise server URL https://enterprise-server/api/v3, collecting verbose data.
+      - name: Setup and run GHAS Licence Cleanup
+        uses: nickliffen/ghas-licence@v1.0.0
+        with:
+          org: my-org
+          token: token-123
+          URL: https://enterprise-server/api/v3
+          level: verbose
 ```
 
-This GitHub Action takes in three inputs:
+## Inputs
 
-1. **org**: Which GitHub Organisation would you like to run this script on.
-2. **token**: A GitHub PAT which has access to all repositories within the GitHub Organisation.
-3. **URL**: The API URL. For GitHub.com, this would be `https://api.github.com`. For GitHub Server, it would be the API URL of your server instance. 
+This GitHub Action takes the following inputs:
 
-There would be only one output: if the job were successful or not. However, if you look at the workflow run, you will see a `repos.json` with repositories that could be disabled with minimal impact.
+| Input Name | Required | Valid Options     | Default Value          | Description                                    |
+|------------|----------|-------------------|------------------------|------------------------------------------------|
+| action     | false    | discover\|disable | discover               | See README.md for more details                 |
+| org        | true     | any               | none                   | The GitHub Org to run the script on            |
+| token      | true     | any               | none                   | The GitHub PAT which has all repo scope access |
+| URL        | true     | any               | https://api.github.com | The API URL                                    |
+| level      | false    | verbose\|precise  | precise                | See README.md for more details                 |
+
+Please note, right now, only discover works. Work is underway to add the disablement feature. 
+
+## Outputs
+
+This GitHub Action outputs the following:
+
+| Output Name | Required | Valid Options | Default Value | Description |
+|-------------|----------|---------------|---------------|-------------|
+| success     | n/a      | n/a           | n/a           | true\|false |
 
 ## Criteria 
 
-Below, lists the criteria that we use (and will be using) to adjust which repositories can have GitHub Advanced Security disabled with minimal impact:
+Below, lists the criteria that we use to determine which repositories can have GitHub Advanced Security disabled with minimal impact. These criteria are run during the `discover` action:
 
-**Criteria 1**: List repositories that have GHAS enabled; but when hitting the [List code scanning analyses for a repository](https://docs.github.com/en/rest/reference/code-scanning#list-code-scanning-analyses-for-a-repository), it returns an empty array. This means no code scanning alerts have been uploaded. 
+**Criteria 1**: List repositories that have GHAS enabled; but when hitting the [List code scanning analyses for a repository](https://docs.github.com/en/rest/reference/code-scanning#list-code-scanning-analyses-for-a-repository), it returns an empty array. This means no code scanning alerts have been uploaded; ever.
 
 :construction: **Crirtia 2**: :construction: List repositories that have GHAS enabled; but when hitting the [List code scanning analyses for a repository](https://docs.github.com/en/rest/reference/code-scanning#list-code-scanning-analyses-for-a-repository), the last analysis was run over **180** days ago. This shows us that code scanning is inactive on this repository. 
 
-We are looking to grow the list of criteria to be more practise and accurate. Expect to see this list grow.
+:construction: **Crirtia 3**: :construction: List repositories that have GHAS enabled; but when hitting the [List secret scanning alerts for a repository](https://docs.github.com/en/rest/reference/secret-scanning#list-secret-scanning-alerts-for-a-repository), there are no secrets returned. This means that there are currently no leaked secrets on that repository.
+
+Right now, only Criteria 1 is in effect.
 
 ## Contributing
 
