@@ -2,7 +2,7 @@ import {
   BillingAPIFunctionResponse,
   ReposWithGHASAC,
   ArrayOfUsersToRepos,
-} from "../../types/common";
+} from "../../../types/common/main";
 
 export const getUniqueDataSet = async (
   repositories: ReposWithGHASAC[]

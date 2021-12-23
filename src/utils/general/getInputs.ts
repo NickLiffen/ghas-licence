@@ -13,6 +13,9 @@ export const getInputs = async (): Promise<string[]> => {
   const level: string = process.env.CI
     ? core.getInput("level", { required: false })
     : (process.env.LEVEL as string);
+  const action: string = process.env.CI
+    ? core.getInput("action", { required: false })
+    : (process.env.ACTION as string);
 
-  return [org, token, url, level];
+  return [org, token, url, level, action];
 };

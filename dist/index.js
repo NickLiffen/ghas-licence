@@ -15337,39 +15337,22 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const dotenv = __importStar(__nccwpck_require__(2437));
 dotenv.config({ path: __nccwpck_require__.ab + ".env" });
-const utils_1 = __nccwpck_require__(6252);
-const run = async () => {
+const discover_1 = __nccwpck_require__(190);
+const general_1 = __nccwpck_require__(1236);
+const main = async () => {
     /* Load the Inputs or process.env */
-    const [org, token, url, level] = await (0, utils_1.getInputs)();
+    const [org, token, url, level, action] = await (0, general_1.getInputs)();
     /* Setting the octokit client */
-    const client = (await (0, utils_1.octokit)(token, url));
-    /* Getting all our billing information */
-    const verboseBillingData = (await (0, utils_1.billing)(client, org));
-    /* Verbose Repos are all repos with a GHAS active committer on. May not be unique GHAS unique active mommitters. */
-    const { repositories: verboseRepos } = verboseBillingData;
-    /* Taking all the verbose dataset and parsing out the repos and their users which are unique */
-    const preciseillingData = await (0, utils_1.getUniqueDataSet)(verboseRepos);
-    /* PrciseRepos Repos are all Repos a unique GHAS active committer on. */
-    const { repositories: prciseRepos } = preciseillingData;
-    /* This tells us how many unique committers there are across all repos */
-    const uniqueSum = await (0, utils_1.sum)(prciseRepos);
-    /* Outputting data to logs */
-    await (0, utils_1.log)(org, verboseBillingData, preciseillingData, uniqueSum);
-    /* This is the dataset we are going to use the identiy the repos to remove */
-    const dataToUse = level === "verbose" ? verboseRepos : prciseRepos;
-    /* This module coordinatates the criteria to be run to identify repos as good contenders to disable GHAS on */
-    const reposWeThinkWeCanRemoveGHASOn = await (0, utils_1.runCriteria)(dataToUse, client);
-    /* If we run this in Github Action then upload the artefact */
-    process.env.CI
-        ? await (0, utils_1.uploadArtefact)(reposWeThinkWeCanRemoveGHASOn, level)
-        : null;
+    const client = (await (0, general_1.octokit)(token, url));
+    /* Run discover */
+    action === "discover" ? await (0, discover_1.run)(client, org, level) : null;
 };
-run();
+main();
 
 
 /***/ }),
 
-/***/ 6173:
+/***/ 4950:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -15438,7 +15421,7 @@ exports.getUniqueDataSet = getUniqueDataSet;
 
 /***/ }),
 
-/***/ 9839:
+/***/ 7678:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -15495,67 +15478,20 @@ exports.checkCodeScanning = checkCodeScanning;
 
 /***/ }),
 
-/***/ 6484:
+/***/ 5039:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.checkCodeScanning = void 0;
-const checkCodeScanning_1 = __nccwpck_require__(9839);
+const checkCodeScanning_1 = __nccwpck_require__(7678);
 Object.defineProperty(exports, "checkCodeScanning", ({ enumerable: true, get: function () { return checkCodeScanning_1.checkCodeScanning; } }));
 
 
 /***/ }),
 
-/***/ 5197:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getInputs = void 0;
-const core = __importStar(__nccwpck_require__(2186));
-const getInputs = async () => {
-    const org = process.env.CI
-        ? core.getInput("org", { required: false })
-        : process.env.ORG;
-    const token = process.env.CI
-        ? core.getInput("token", { required: false })
-        : process.env.API_TOKEN;
-    const url = process.env.CI
-        ? core.getInput("url", { required: false })
-        : process.env.BASE_URL;
-    const level = process.env.CI
-        ? core.getInput("level", { required: false })
-        : process.env.LEVEL;
-    return [org, token, url, level];
-};
-exports.getInputs = getInputs;
-
-
-/***/ }),
-
-/***/ 9612:
+/***/ 5978:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -15570,34 +15506,32 @@ exports.sum = sum;
 
 /***/ }),
 
-/***/ 6252:
+/***/ 190:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.uploadArtefact = exports.runCriteria = exports.getInputs = exports.log = exports.sum = exports.getUniqueDataSet = exports.octokit = exports.billing = void 0;
-const query_1 = __nccwpck_require__(1813);
+exports.run = exports.uploadArtefact = exports.runCriteria = exports.log = exports.sum = exports.getUniqueDataSet = exports.billing = void 0;
+const query_1 = __nccwpck_require__(1084);
 Object.defineProperty(exports, "billing", ({ enumerable: true, get: function () { return query_1.billing; } }));
-const octokit_1 = __nccwpck_require__(3409);
-Object.defineProperty(exports, "octokit", ({ enumerable: true, get: function () { return octokit_1.octokit; } }));
-const collectUniqueDataset_1 = __nccwpck_require__(6173);
+const collectUniqueDataset_1 = __nccwpck_require__(4950);
 Object.defineProperty(exports, "getUniqueDataSet", ({ enumerable: true, get: function () { return collectUniqueDataset_1.getUniqueDataSet; } }));
-const helpers_1 = __nccwpck_require__(9612);
+const helpers_1 = __nccwpck_require__(5978);
 Object.defineProperty(exports, "sum", ({ enumerable: true, get: function () { return helpers_1.sum; } }));
-const log_1 = __nccwpck_require__(8410);
+const log_1 = __nccwpck_require__(6283);
 Object.defineProperty(exports, "log", ({ enumerable: true, get: function () { return log_1.log; } }));
-const getInputs_1 = __nccwpck_require__(5197);
-Object.defineProperty(exports, "getInputs", ({ enumerable: true, get: function () { return getInputs_1.getInputs; } }));
-const runCriteria_1 = __nccwpck_require__(4691);
+const runCriteria_1 = __nccwpck_require__(6953);
 Object.defineProperty(exports, "runCriteria", ({ enumerable: true, get: function () { return runCriteria_1.runCriteria; } }));
-const uploadArtefact_1 = __nccwpck_require__(2332);
+const uploadArtefact_1 = __nccwpck_require__(8203);
 Object.defineProperty(exports, "uploadArtefact", ({ enumerable: true, get: function () { return uploadArtefact_1.uploadArtefact; } }));
+const main_1 = __nccwpck_require__(4082);
+Object.defineProperty(exports, "run", ({ enumerable: true, get: function () { return main_1.run; } }));
 
 
 /***/ }),
 
-/***/ 8410:
+/***/ 6283:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -15638,44 +15572,63 @@ exports.log = log;
 
 /***/ }),
 
-/***/ 3409:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ 4082:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.octokit = void 0;
-const core_1 = __nccwpck_require__(6762);
-const plugin_retry_1 = __nccwpck_require__(6298);
-const plugin_throttling_1 = __nccwpck_require__(9968);
-const plugin_paginate_rest_1 = __nccwpck_require__(4193);
-const MyOctokit = core_1.Octokit.plugin(plugin_paginate_rest_1.paginateRest, plugin_retry_1.retry, plugin_throttling_1.throttling);
-const octokit = async (token, baseUrl) => {
-    if (!token) {
-        throw new Error("No auth mechinsim. Please make sure you have a token OR app settings.");
-    }
-    const octokit = new MyOctokit({
-        auth: token,
-        previews: ["hellcat", "mercy", "machine-man"],
-        request: { retries: 3 },
-        baseUrl,
-        throttle: {
-            onRateLimit: (options) => {
-                return options.request.retryCount <= 3;
-            },
-            onAbuseLimit: () => {
-                return true;
-            },
-        },
-    });
-    return octokit;
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
 };
-exports.octokit = octokit;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.run = void 0;
+const dotenv = __importStar(__nccwpck_require__(2437));
+dotenv.config({ path: __dirname + "../../.env" });
+const _1 = __nccwpck_require__(190);
+const run = async (client, org, level) => {
+    /* Getting all our billing information */
+    const verboseBillingData = (await (0, _1.billing)(client, org));
+    /* Verbose Repos are all repos with a GHAS active committer on. May not be unique GHAS unique active mommitters. */
+    const { repositories: verboseRepos } = verboseBillingData;
+    /* Taking all the verbose dataset and parsing out the repos and their users which are unique */
+    const preciseillingData = await (0, _1.getUniqueDataSet)(verboseRepos);
+    /* PrciseRepos Repos are all Repos a unique GHAS active committer on. */
+    const { repositories: prciseRepos } = preciseillingData;
+    /* This tells us how many unique committers there are across all repos */
+    const uniqueSum = await (0, _1.sum)(prciseRepos);
+    /* Outputting data to logs */
+    await (0, _1.log)(org, verboseBillingData, preciseillingData, uniqueSum);
+    /* This is the dataset we are going to use the identiy the repos to remove */
+    const dataToUse = level === "verbose" ? verboseRepos : prciseRepos;
+    /* This module coordinatates the criteria to be run to identify repos as good contenders to disable GHAS on */
+    const reposWeThinkWeCanRemoveGHASOn = await (0, _1.runCriteria)(dataToUse, client);
+    /* If we run this in Github Action then upload the artefact */
+    process.env.CI
+        ? await (0, _1.uploadArtefact)(reposWeThinkWeCanRemoveGHASOn, level)
+        : null;
+};
+exports.run = run;
 
 
 /***/ }),
 
-/***/ 1813:
+/***/ 1084:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -15757,7 +15710,7 @@ exports.billing = billing;
 
 /***/ }),
 
-/***/ 4691:
+/***/ 6953:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -15784,7 +15737,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.runCriteria = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-const criteria_1 = __nccwpck_require__(6484);
+const criteria_1 = __nccwpck_require__(5039);
 const runCriteria = async (dataToUse, client) => {
     /* This is the dataset that we think we are going to be able to clean GHAS up on */
     const reposWeThinkWeCanRemoveGHASOn = [];
@@ -15809,7 +15762,7 @@ exports.runCriteria = runCriteria;
 
 /***/ }),
 
-/***/ 2332:
+/***/ 8203:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -15859,6 +15812,108 @@ const uploadArtefact = async (reposWeThinkWeCanRemoveGHASOn, level) => {
     }
 };
 exports.uploadArtefact = uploadArtefact;
+
+
+/***/ }),
+
+/***/ 696:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getInputs = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const getInputs = async () => {
+    const org = process.env.CI
+        ? core.getInput("org", { required: false })
+        : process.env.ORG;
+    const token = process.env.CI
+        ? core.getInput("token", { required: false })
+        : process.env.API_TOKEN;
+    const url = process.env.CI
+        ? core.getInput("url", { required: false })
+        : process.env.BASE_URL;
+    const level = process.env.CI
+        ? core.getInput("level", { required: false })
+        : process.env.LEVEL;
+    const action = process.env.CI
+        ? core.getInput("action", { required: false })
+        : process.env.ACTION;
+    return [org, token, url, level, action];
+};
+exports.getInputs = getInputs;
+
+
+/***/ }),
+
+/***/ 1236:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.octokit = exports.getInputs = void 0;
+const getInputs_1 = __nccwpck_require__(696);
+Object.defineProperty(exports, "getInputs", ({ enumerable: true, get: function () { return getInputs_1.getInputs; } }));
+const octokit_1 = __nccwpck_require__(9898);
+Object.defineProperty(exports, "octokit", ({ enumerable: true, get: function () { return octokit_1.octokit; } }));
+
+
+/***/ }),
+
+/***/ 9898:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.octokit = void 0;
+const core_1 = __nccwpck_require__(6762);
+const plugin_retry_1 = __nccwpck_require__(6298);
+const plugin_throttling_1 = __nccwpck_require__(9968);
+const plugin_paginate_rest_1 = __nccwpck_require__(4193);
+const MyOctokit = core_1.Octokit.plugin(plugin_paginate_rest_1.paginateRest, plugin_retry_1.retry, plugin_throttling_1.throttling);
+const octokit = async (token, baseUrl) => {
+    if (!token) {
+        throw new Error("No auth mechinsim. Please make sure you have a token OR app settings.");
+    }
+    const octokit = new MyOctokit({
+        auth: token,
+        previews: ["hellcat", "mercy", "machine-man"],
+        request: { retries: 3 },
+        baseUrl,
+        throttle: {
+            onRateLimit: (options) => {
+                return options.request.retryCount <= 3;
+            },
+            onAbuseLimit: () => {
+                return true;
+            },
+        },
+    });
+    return octokit;
+};
+exports.octokit = octokit;
 
 
 /***/ }),

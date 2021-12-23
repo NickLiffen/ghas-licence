@@ -1,4 +1,4 @@
-import { ReposWithGHASAC } from "../../types/common";
+import { ReposWithGHASAC } from "../../../types/common";
 
 export const sum = (repo: ReposWithGHASAC[]) =>
   repo

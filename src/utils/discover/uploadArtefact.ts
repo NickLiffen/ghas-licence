@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import * as artifact from "@actions/artifact";
 
-import { ReposWithGHASAC } from "../../types/common";
+import { ReposWithGHASAC } from "../../../types/common";
 
 import { promises as fs } from "fs";
 

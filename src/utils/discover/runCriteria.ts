@@ -1,8 +1,8 @@
 import * as core from "@actions/core";
-import { ReposWithGHASAC } from "../../types/common";
+import { ReposWithGHASAC } from "../../../types/common";
 import { checkCodeScanning } from "./criteria";
 
-import { Octokit } from "./octokitTypes";
+import { Octokit } from "../general";
 
 export const runCriteria = async (
   dataToUse: ReposWithGHASAC[],

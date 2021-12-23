@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 
-import { BillingAPIFunctionResponse } from "../../types/common";
+import { BillingAPIFunctionResponse } from "../../../types/common";
 
 export const log = async (
   org: string,

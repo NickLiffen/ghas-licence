@@ -1,4 +1,4 @@
-import { Octokit, BillingType } from "./octokitTypes";
+import { Octokit, BillingType } from "../general";
 
 import * as core from "@actions/core";
 
@@ -6,7 +6,7 @@ import {
   RequestParams,
   ReposWithGHASAC,
   BillingAPIFunctionResponse,
-} from "../../types/common";
+} from "../../../types/common";
 
 const query = async (
   requestParams: RequestParams,

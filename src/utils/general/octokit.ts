@@ -3,7 +3,7 @@ import { retry } from "@octokit/plugin-retry";
 import { throttling } from "@octokit/plugin-throttling";
 import { paginateRest } from "@octokit/plugin-paginate-rest";
 
-import { RateLimitOptions } from "../../types/common";
+import { RateLimitOptions } from "../../../types/common";
 
 const MyOctokit = Octokit.plugin(paginateRest, retry, throttling);
 
