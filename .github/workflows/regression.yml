@@ -23,7 +23,7 @@ jobs:
           token: ${{ secrets.TOKEN }} 
           url: https://api.github.com
           level: precise
-          actions: disable
+          action: disable
 
 
       - name: Setup and run GHAS Licence Cleanup (Precise)
@@ -33,7 +33,7 @@ jobs:
           token: ${{ secrets.TOKEN }} 
           url: https://api.github.com
           level: precise
-          actions: discover
+          action: discover
 
       - name: Setup and run GHAS Licence Cleanup (Verbose)
         uses: ./
@@ -42,7 +42,7 @@ jobs:
           token: ${{ secrets.TOKEN }} 
           url: https://api.github.com
           level: verbose
-          actions: discover
+          action: discover
 
       - name: Setup and run GHAS Licence Cleanup (Precise)
         uses: ./
@@ -51,4 +51,4 @@ jobs:
           token: ${{ secrets.TOKEN }} 
           url: https://api.github.com
           level: precise
-          actions: disable
+          action: disable
