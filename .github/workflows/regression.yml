@@ -1,6 +1,12 @@
 name: GitHub Advanced Security cleanup
 
-on: push
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '22 12 * * 0'
 
 jobs:
   ghas-cleanup:
@@ -17,6 +23,17 @@ jobs:
           token: ${{ secrets.TOKEN }} 
           url: https://api.github.com
           level: precise
+          actions: disable
+
+
+      - name: Setup and run GHAS Licence Cleanup (Precise)
+        uses: ./
+        with:
+          org: ${{ secrets.ORG }} 
+          token: ${{ secrets.TOKEN }} 
+          url: https://api.github.com
+          level: precise
+          actions: discover
 
       - name: Setup and run GHAS Licence Cleanup (Verbose)
         uses: ./
@@ -25,3 +42,13 @@ jobs:
           token: ${{ secrets.TOKEN }} 
           url: https://api.github.com
           level: verbose
+          actions: discover
+
+      - name: Setup and run GHAS Licence Cleanup (Precise)
+        uses: ./
+        with:
+          org: ${{ secrets.ORG }} 
+          token: ${{ secrets.TOKEN }} 
+          url: https://api.github.com
+          level: precise
+          actions: disable
