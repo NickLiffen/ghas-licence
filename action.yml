@@ -2,10 +2,6 @@ name: 'Action Name'
 author: 'NickLiffen'
 description: 'Action Description'
 inputs:
-  action:
-    description: 'discover|disable (see README.md for more details)'
-    required: false
-    default: 'discover'
   org:
     description: 'The GitHub Org Name that you would like to cleaup GHAS Licences On'
     required: true
@@ -20,6 +16,10 @@ inputs:
     description: 'verbose|precise (see README.md for more details)'
     required: false
     default: 'precise'
+  dryrun:
+    description: 'Tells the action wether to remove the users found'
+    required: false
+    default: 'true'
 outputs:
   success:
     description: 'Did it work'

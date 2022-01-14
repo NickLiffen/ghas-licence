@@ -9,21 +9,17 @@ import { octokit, getInputs, Octokit } from "./utils/general";
 
 const main = async (): Promise<void> => {
   /* Load the Inputs or process.env */
-  const [org, token, url, level, action] = await getInputs();
+  const [org, token, url, level, dryRun] = await getInputs();
 
   /* Setting the octokit client */
   const client = (await octokit(token, url)) as Octokit;
 
   try {
     /* Run discover */
-    action === "discover" ? await discover(client, org, level) : null;
-  } catch (error) {
-    console.error(error);
-  }
-
-  try {
-    /* Run disable */
-    action === "disable" ? await disable(client, org) : null;
+    const data = await discover(client, org, level);
+    console.log(dryRun);
+    /* Run disable if not set to a dry run */
+    dryRun === "false" ? await disable(client, data) : null;
   } catch (error) {
     console.error(error);
   }

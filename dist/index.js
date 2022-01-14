@@ -15342,19 +15342,15 @@ const disable_1 = __nccwpck_require__(4853);
 const general_1 = __nccwpck_require__(1236);
 const main = async () => {
     /* Load the Inputs or process.env */
-    const [org, token, url, level, action] = await (0, general_1.getInputs)();
+    const [org, token, url, level, dryRun] = await (0, general_1.getInputs)();
     /* Setting the octokit client */
     const client = (await (0, general_1.octokit)(token, url));
     try {
         /* Run discover */
-        action === "discover" ? await (0, discover_1.run)(client, org, level) : null;
-    }
-    catch (error) {
-        console.error(error);
-    }
-    try {
+        const data = await (0, discover_1.run)(client, org, level);
+        console.log(dryRun);
         /* Run disable */
-        action === "disable" ? await (0, disable_1.run)(client, org) : null;
+        dryRun === "false" ? await (0, disable_1.run)(client, org, data) : null;
     }
     catch (error) {
         console.error(error);
@@ -15421,15 +15417,16 @@ Object.defineProperty(exports, "downloadArtefact", ({ enumerable: true, get: fun
 /***/ }),
 
 /***/ 1027:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
-const _1 = __nccwpck_require__(4853);
-const run = async (client, org) => {
-    await (0, _1.downloadArtefact)();
+const run = async (client, org, data) => {
+    for await (const { repo } of data) {
+        console.log(repo);
+    }
 };
 exports.run = run;
 
@@ -15706,6 +15703,7 @@ const run = async (client, org, level) => {
     process.env.CI
         ? await (0, _1.uploadArtefact)(reposWeThinkWeCanRemoveGHASOn, level)
         : null;
+    return reposWeThinkWeCanRemoveGHASOn;
 };
 exports.run = run;
 
@@ -15940,10 +15938,10 @@ const getInputs = async () => {
     const level = process.env.CI
         ? core.getInput("level", { required: false })
         : process.env.LEVEL;
-    const action = process.env.CI
+    const dryRun = process.env.CI
         ? core.getInput("action", { required: false })
-        : process.env.ACTION;
-    return [org, token, url, level, action];
+        : process.env.DRY_RUN;
+    return [org, token, url, level, dryRun];
 };
 exports.getInputs = getInputs;
 

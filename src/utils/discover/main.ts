@@ -12,13 +12,16 @@ import {
 
 import { Octokit } from "../general";
 
-import { BillingAPIFunctionResponse } from "../../../types/common";
+import {
+  BillingAPIFunctionResponse,
+  ReposWithGHASAC,
+} from "../../../types/common";
 
 export const run = async (
   client: Octokit,
   org: string,
   level: string
-): Promise<void> => {
+): Promise<ReposWithGHASAC[]> => {
   /* Getting all our billing information */
   const verboseBillingData = (await billing(
     client,
@@ -50,4 +53,6 @@ export const run = async (
   process.env.CI
     ? await uploadArtefact(reposWeThinkWeCanRemoveGHASOn, level)
     : null;
+
+  return reposWeThinkWeCanRemoveGHASOn;
 };
