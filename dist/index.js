@@ -15349,8 +15349,8 @@ const main = async () => {
         /* Run discover */
         const data = await (0, discover_1.run)(client, org, level);
         console.log(dryRun);
-        /* Run disable */
-        dryRun === "false" ? await (0, disable_1.run)(client, org, data) : null;
+        /* Run disable if not set to a dry run */
+        dryRun === "false" ? await (0, disable_1.run)(client, data) : null;
     }
     catch (error) {
         console.error(error);
@@ -15423,9 +15423,28 @@ Object.defineProperty(exports, "downloadArtefact", ({ enumerable: true, get: fun
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
-const run = async (client, org, data) => {
-    for await (const { repo } of data) {
-        console.log(repo);
+const run = async (client, data) => {
+    try {
+        for await (const { repo } of data) {
+            const [owner, repository] = repo.split("/");
+            const requestParams = {
+                owner,
+                repo: repository,
+                security_and_analysis: {
+                    advanced_security: {
+                        status: "disabled",
+                    },
+                    secret_scanning: {
+                        status: "disabled",
+                    },
+                },
+            };
+            await client.request("PATCH /repos/{owner}/{repo}", requestParams);
+        }
+    }
+    catch (e) {
+        console.error(e);
+        throw e;
     }
 };
 exports.run = run;

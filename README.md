@@ -47,14 +47,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      # Running the discover action on the org my-org using token token-123, only collecting precise data.
+      # Running this action on the org my-org using token token-123, only collecting precise data.
       - name: Setup and run GHAS Licence Cleanup
         uses: nickliffen/ghas-licence@v1.0.0
         with:
           org: my-org
           token: token-123
 
-      # Running the discover action on the org my-org using token token-123, on the enterprise server URL https://enterprise-server/api/v3, collecting verbose data.
+      # Running this action on the org my-org using token token-123, on the enterprise server URL https://enterprise-server/api/v3, collecting verbose data.
       - name: Setup and run GHAS Licence Cleanup
         uses: nickliffen/ghas-licence@v1.0.0
         with:
@@ -70,13 +70,24 @@ This GitHub Action takes the following inputs:
 
 | Input Name | Required | Valid Options     | Default Value          | Description                                    |
 |------------|----------|-------------------|------------------------|------------------------------------------------|
-| action     | false    | discover\|disable | discover               | See README.md for more details                 |
+| dryrun     | false    | true\|false       | true               | See README.md for more details                 |
 | org        | true     | any               | none                   | The GitHub Org to run the script on            |
 | token      | true     | any               | none                   | The GitHub PAT which has all repo scope access |
 | URL        | true     | any               | https://api.github.com | The API URL                                    |
 | level      | false    | verbose\|precise  | precise                | See README.md for more details                 |
 
-Please note, right now, only discover works. Work is underway to add the disablement feature. 
+### Understanding the dryrun capability 
+
+The `dryrun` variable is essential. It sets the flag whether to:
+
+Disable github advanced security on the repositories found.
+Upload the repositories found in the scope of the criteria for review.
+
+As mentioned in the above table, the default value for `dry run` is set to `true`. 
+
+This means we will find the repositories that can have github advanced security disabled with the most negligible impact and upload them as an artefact to the workflow run. Most of the time, you will want to leave the `dryrun` set to `true` because you would like first to review which repositories are in scope. 
+
+Once you are happy with the list, you can set `dryrun` to `false`, which will do the same as mentioned above. Still, it will go ahead and disable github advanced security on the repositories found. 
 
 ## Outputs
 
@@ -86,9 +97,12 @@ This GitHub Action outputs the following:
 |-------------|----------|---------------|---------------|-------------|
 | success     | n/a      | n/a           | n/a           | true\|false |
 
+
+An artefact is also uploaded to the workflow run with the repositories found in the scope of the criteria set. 
+
 ## Criteria 
 
-Below, lists the criteria that we use to determine which repositories can have GitHub Advanced Security disabled with minimal impact. These criteria are run during the `discover` action:
+Below, lists the criteria that we use to determine which repositories can have GitHub Advanced Security disabled with minimal impact.
 
 **Criteria 1**: List repositories that have GHAS enabled; but when hitting the [List code scanning analyses for a repository](https://docs.github.com/en/rest/reference/code-scanning#list-code-scanning-analyses-for-a-repository), it returns an empty array. This means no code scanning alerts have been uploaded; ever.
 
