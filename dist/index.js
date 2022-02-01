@@ -15361,57 +15361,15 @@ main();
 
 /***/ }),
 
-/***/ 4748:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.downloadArtefact = void 0;
-const artifact = __importStar(__nccwpck_require__(2605));
-const downloadArtefact = async () => {
-    const artifactClient = artifact.create();
-    const downloadResponse = await artifactClient.downloadAllArtifacts();
-    console.log(downloadResponse);
-    console.log(downloadResponse.length);
-    console.log(downloadResponse[0].artifactName);
-    console.log(downloadResponse[0].downloadPath);
-};
-exports.downloadArtefact = downloadArtefact;
-
-
-/***/ }),
-
 /***/ 4853:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.downloadArtefact = exports.run = void 0;
+exports.run = void 0;
 const main_1 = __nccwpck_require__(1027);
 Object.defineProperty(exports, "run", ({ enumerable: true, get: function () { return main_1.run; } }));
-const downloadArtefact_1 = __nccwpck_require__(4748);
-Object.defineProperty(exports, "downloadArtefact", ({ enumerable: true, get: function () { return downloadArtefact_1.downloadArtefact; } }));
 
 
 /***/ }),
