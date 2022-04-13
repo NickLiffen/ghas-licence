@@ -106,9 +106,9 @@ Below, lists the criteria that we use to determine which repositories can have G
 
 **Criteria 1**: List repositories that have GHAS enabled; but when hitting the [List code scanning analyses for a repository](https://docs.github.com/en/rest/reference/code-scanning#list-code-scanning-analyses-for-a-repository), it returns an empty array. This means no code scanning alerts have been uploaded; ever.
 
-:construction: **Crirtia 2**: :construction: List repositories that have GHAS enabled; but when hitting the [List code scanning analyses for a repository](https://docs.github.com/en/rest/reference/code-scanning#list-code-scanning-analyses-for-a-repository), the last analysis was run over **180** days ago. This shows us that code scanning is inactive on this repository. 
+:construction: **Criteria 2**: :construction: List repositories that have GHAS enabled; but when hitting the [List code scanning analyses for a repository](https://docs.github.com/en/rest/reference/code-scanning#list-code-scanning-analyses-for-a-repository), the last analysis was run over **180** days ago. This shows us that code scanning is inactive on this repository. 
 
-:construction: **Crirtia 3**: :construction: List repositories that have GHAS enabled; but when hitting the [List secret scanning alerts for a repository](https://docs.github.com/en/rest/reference/secret-scanning#list-secret-scanning-alerts-for-a-repository), there are no secrets returned. This means that there are currently no leaked secrets on that repository.
+:construction: **Criteria 3**: :construction: List repositories that have GHAS enabled; but when hitting the [List secret scanning alerts for a repository](https://docs.github.com/en/rest/reference/secret-scanning#list-secret-scanning-alerts-for-a-repository), there are no secrets returned. This means that there are currently no leaked secrets on that repository.
 
 Right now, only Criteria 1 is in effect.
 
