@@ -23,7 +23,7 @@
     "@octokit/plugin-retry": "^3.0.9",
     "@octokit/plugin-throttling": "^3.5.2",
     "@vercel/ncc": "^0.33.4",
-    "dotenv": "^16.0.0"
+    "dotenv": "^16.0.1"
   },
   "devDependencies": {
     "@tsconfig/node16": "^1.0.2",
