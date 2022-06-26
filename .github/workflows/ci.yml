@@ -26,6 +26,7 @@ jobs:
       with:
         languages: ${{ matrix.language }}
         queries: security-extended
+        config-file: ./.github/codeql/codeql-config.yml
     - name: Autobuild
       uses: github/codeql-action/autobuild@v2
     - name: Perform CodeQL Analysis
