@@ -11,7 +11,7 @@
     "lint:write": "eslint --fix . --ext .ts",
     "test": "jest --coverage",
     "prepare": "husky install",
-    "local": "yarn run build && act --job regression --env-file ./.env --eventpath .github/workflows/regression/payload.event --secret-file my.secrets"
+    "local": "yarn run build && act --job dispatch --env-file ./.env --eventpath .github/workflows/regression/payload.event --secret-file my.secrets"
   },
   "keywords": [],
   "author": "",
