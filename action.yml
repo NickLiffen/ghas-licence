@@ -5,9 +5,6 @@ inputs:
   org:
     description: 'The GitHub Org Name that you would like to cleaup GHAS Licences On'
     required: true
-  token:
-    description: 'The GitHub Token. This will need to have access to the orgs private repos'
-    required: true
   url:
     description: 'The GitHub URL. The default is github.com, but you '
     required: false

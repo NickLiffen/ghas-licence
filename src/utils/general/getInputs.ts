@@ -4,9 +4,6 @@ export const getInputs = async (): Promise<string[]> => {
   const org: string = process.env.CI
     ? core.getInput("org", { required: false })
     : (process.env.ORG as string);
-  const token: string = process.env.CI
-    ? core.getInput("token", { required: false })
-    : (process.env.API_TOKEN as string);
   const url: string = process.env.CI
     ? core.getInput("url", { required: false })
     : (process.env.BASE_URL as string);
@@ -17,5 +14,5 @@ export const getInputs = async (): Promise<string[]> => {
     ? core.getInput("dryrun", { required: false })
     : (process.env.DRY_RUN as string);
 
-  return [org, token, url, level, dryRun];
+  return [org, url, level, dryRun];
 };

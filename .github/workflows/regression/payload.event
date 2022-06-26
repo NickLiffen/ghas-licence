@@ -1,0 +1,8 @@
+{
+  "action": "workflow_dispatch",
+  "inputs": {
+      "url": "https://api.github.com",
+      "level": "precise",
+      "dryrun": "true"
+  }
+}
