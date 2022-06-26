@@ -47,19 +47,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      # Running this action on the org my-org using token token-123, only collecting precise data.
+      #  Running this action on the org my-org using a custom GITHUB_TOKEN env var, only collecting precise data.
       - name: Setup and run GHAS Licence Cleanup
-        uses: nickliffen/ghas-licence@v1.0.0
+        uses: nickliffen/ghas-licence@v1.1.0
+        env: 
+          GITHUB_TOKEN: "${{ secrets.TOKEN }}"
         with:
           org: my-org
-          token: token-123
 
-      # Running this action on the org my-org using token token-123, on the enterprise server URL https://enterprise-server/api/v3, collecting verbose data.
+      # Running this action on the org my-org using a custom GITHUB_TOKEN env var, on the enterprise server URL https://enterprise-server/api/v3, collecting verbose data.
       - name: Setup and run GHAS Licence Cleanup
-        uses: nickliffen/ghas-licence@v1.0.0
+        uses: nickliffen/ghas-licence@v1.1.0
+        env: 
+          GITHUB_TOKEN: "${{ secrets.TOKEN }}"
         with:
           org: my-org
-          token: token-123
           URL: https://enterprise-server/api/v3
           level: verbose
 ```
@@ -72,7 +74,7 @@ This GitHub Action takes the following inputs:
 |------------|----------|-------------------|------------------------|------------------------------------------------|
 | dryrun     | false    | true\|false       | true               | See README.md for more details                 |
 | org        | true     | any               | none                   | The GitHub Org to run the script on            |
-| token      | true     | any               | none                   | The GitHub PAT which has all repo scope access |
+| GITHUB_TOKEN      | true     | any               | none                   | The GitHub PAT which has all repo scope access |
 | URL        | true     | any               | https://api.github.com | The API URL                                    |
 | level      | false    | verbose\|precise  | precise                | See README.md for more details                 |
 
