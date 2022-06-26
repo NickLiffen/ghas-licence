@@ -11,7 +11,7 @@
     "lint:write": "eslint --fix . --ext .ts",
     "test": "jest --coverage",
     "prepare": "husky install",
-    "local": "yarn run build && node dist/index.js"
+    "local": "yarn run build && act --job regression --env-file ./.env --eventpath .github/workflows/regression/payload.event --secret-file my.secrets"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +20,7 @@
     "@actions/artifact": "^0.6.1",
     "@actions/core": "^1.6.0",
     "@actions/github": "^5.0.0",
+    "@octokit/action": "^3.18.1",
     "@octokit/plugin-retry": "^3.0.9",
     "@octokit/plugin-throttling": "^3.5.2",
     "@vercel/ncc": "^0.33.4",

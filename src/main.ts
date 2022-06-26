@@ -9,10 +9,10 @@ import { octokit, getInputs, Octokit } from "./utils/general";
 
 const main = async (): Promise<void> => {
   /* Load the Inputs or process.env */
-  const [org, token, url, level, dryRun] = await getInputs();
+  const [org, url, level, dryRun] = await getInputs();
 
   /* Setting the octokit client */
-  const client = (await octokit(token, url)) as Octokit;
+  const client = (await octokit(url)) as Octokit;
 
   try {
     /* Run discover */
