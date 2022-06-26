@@ -1,0 +1,38 @@
+--- 
+jobs: 
+  dispatch: 
+    name: dispatch
+    runs-on: ubuntu-20.04
+    steps: 
+      - 
+        name: "Git Checkout"
+        uses: actions/checkout@v2
+        with: 
+          path: github-advanced-security-licence-checker
+      - 
+        env: 
+          GITHUB_TOKEN: "${{ secrets.TOKEN }}"
+        name: "Licence Checker"
+        uses: ./github-advanced-security-licence-checker
+        with: 
+          org: ${{ secrets.ORG }} 
+          url: "${{ github.event.inputs.url }}"
+          level: "${{ github.event.inputs.level }}"
+          dryrun: "${{ github.event.inputs.dryrun }}"
+name: "Manual Testing - GHAS Licence Checker"
+? "on"
+: 
+  workflow_dispatch: 
+    inputs: 
+      url: 
+        default: "https://api.github.com"
+        description: "The API of the GitHub Instance"
+        required: true
+      level: 
+        default: "precise"
+        description: "verbose|precise (see README.md for more details)"
+        required: true
+      dryrun: 
+        default: "true"
+        description: "Tells the action wether to remove the users found"
+        required: false

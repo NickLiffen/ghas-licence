@@ -1,7 +1,8 @@
 --- 
 jobs: 
-  regression: 
-    name: regression
+  regression-dependabot: 
+    name: Regression Testing Dependabot
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'dependencies') && github.event.sender.login == 'dependabot[bot]' }}
     runs-on: ubuntu-20.04
     steps: 
       - 
@@ -27,9 +28,7 @@ jobs:
           url: "https://api.github.com"
           level: "verbose"
           dryrun: "true"
-name: "Regression Testing - GHAS Licence Checker (Non Dependabot)"
+name: "Regression Testing - GHAS Licence Checker (Dependabot)"
 ? "on"
 : 
-  push:
-    branches-ignore:
-      - 'dependabot/**'
+  pull_request_target:
