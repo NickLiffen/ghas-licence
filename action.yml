@@ -14,7 +14,7 @@ inputs:
     required: false
     default: 'precise'
   dryrun:
-    description: 'Tells the action wether to remove the users found'
+    description: 'Tells the action wether to disable GHAS on the repositories specified'
     required: false
     default: 'true'
 outputs:
