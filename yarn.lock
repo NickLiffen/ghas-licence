@@ -1010,11 +1010,6 @@
     "@octokit/types" "^6.0.3"
     universal-user-agent "^6.0.0"
 
-"@octokit/openapi-types@^11.2.0":
-  version "11.2.0"
-  resolved "https://registry.yarnpkg.com/@octokit/openapi-types/-/openapi-types-11.2.0.tgz#b38d7fc3736d52a1e96b230c1ccd4a58a2f400a6"
-  integrity sha512-PBsVO+15KSlGmiI8QAzaqvsNlZlrDlyAJYcrXBCvVUxCp7VnXjkwPoFHgjEJXx3WF9BAwkA6nfCUA7i9sODzKA==
-
 "@octokit/openapi-types@^12.4.0":
   version "12.4.0"
   resolved "https://registry.yarnpkg.com/@octokit/openapi-types/-/openapi-types-12.4.0.tgz#fd8bf5db72bd566c5ba2cb76754512a9ebe66e71"
@@ -1055,10 +1050,10 @@
     "@octokit/types" "^9.0.0"
     deprecation "^2.3.1"
 
-"@octokit/plugin-retry@^4.1.1":
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/@octokit/plugin-retry/-/plugin-retry-4.1.1.tgz#2a96e97219f6506d636b4de696cf368da44a8e20"
-  integrity sha512-iR7rg5KRSl6L6RELTQQ3CYeNgeBJyuAmP95odzcQ/zyefnRT/Peo8rWeky4z7V/+/oPWqOL4I5Z+V8KtjpHCJw==
+"@octokit/plugin-retry@^4.1.2":
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/@octokit/plugin-retry/-/plugin-retry-4.1.2.tgz#4a8be9cdd75c0b650a5547b1b527a1498391242f"
+  integrity sha512-hscf7p/6DIQ8xbfDrMl9IflxugED6sFQvAUbSi75R6h/6hcNQgrb2vpfPTmyYKkdAEeTkUsEpzpQFdTAhSITOw==
   dependencies:
     "@octokit/types" "^9.0.0"
     bottleneck "^2.15.3"
@@ -1125,14 +1120,7 @@
     node-fetch "^2.6.7"
     universal-user-agent "^6.0.0"
 
-"@octokit/types@^6.0.3", "@octokit/types@^6.16.1":
-  version "6.34.0"
-  resolved "https://registry.yarnpkg.com/@octokit/types/-/types-6.34.0.tgz#c6021333334d1ecfb5d370a8798162ddf1ae8218"
-  integrity sha512-s1zLBjWhdEI2zwaoSgyOFoKSl109CUcVBCc7biPJ3aAf6LGLU6szDvi31JPU7bxfla2lqfhjbbg/5DdFNxOwHw==
-  dependencies:
-    "@octokit/openapi-types" "^11.2.0"
-
-"@octokit/types@^6.36.0":
+"@octokit/types@^6.0.3", "@octokit/types@^6.16.1", "@octokit/types@^6.36.0":
   version "6.37.1"
   resolved "https://registry.yarnpkg.com/@octokit/types/-/types-6.37.1.tgz#600a9c9643f696ba68f229c8d71abbc1040ad6a6"
   integrity sha512-Q1hXSP2YumHkDdD+V4wFKr7vJ9+8tjocixrTSb75JzJ4GpjSyu5B4kpgrXxO6GOs4nOmVyRwRgS4/RO/Lf9oEA==
