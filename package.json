@@ -31,7 +31,7 @@
     "@types/jest": "^29.4.0",
     "@types/js-yaml": "^4.0.5",
     "@types/json-schema": "^7.0.11",
-    "@types/node": "^18.11.18",
+    "@types/node": "^18.14.2",
     "@typescript-eslint/eslint-plugin": "^5.50.0",
     "@typescript-eslint/parser": "^5.50.0",
     "eslint": "^8.33.0",
