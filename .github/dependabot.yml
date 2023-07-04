@@ -6,9 +6,17 @@ updates:
       interval: monthly
     reviewers:
       - "nickliffen"
+    groups:
+      dependencies:
+        patterns:
+          - "*"
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: monthly
     reviewers:
       - "nickliffen"
+    groups:
+      dependencies:
+        patterns:
+          - "*"
