@@ -1,6 +1,6 @@
-name: 'Action Name'
+name: 'GitHub Advanced Security Licence Cleanup'
 author: 'NickLiffen'
-description: 'Action Description'
+description: 'This GitHub Action informs you of repositories you could disable GitHub Advanced Security on to save some licences based on criteria.'
 inputs:
   org:
     description: 'The GitHub Org Name that you would like to cleaup GHAS Licences On'
