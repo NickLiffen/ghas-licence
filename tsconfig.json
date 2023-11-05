@@ -1,5 +1,5 @@
 {
-    "extends": "@tsconfig/node16/tsconfig.json",
+    "extends": "@tsconfig/node20/tsconfig.json",
     "include": [
       "./src/*.ts"
     ],
@@ -12,7 +12,6 @@
         "./types",
         "node_modules/@types"
       ],
-      "moduleResolution": "node",
       "outDir": "./lib"
     }
   }

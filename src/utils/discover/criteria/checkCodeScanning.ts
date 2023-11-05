@@ -5,7 +5,7 @@ import { ReposWithGHASAC } from "../../../../types/common/main";
 
 export const checkCodeScanning = async (
   client: Octokit,
-  repos: ReposWithGHASAC
+  repos: ReposWithGHASAC,
 ): Promise<boolean> => {
   try {
     const [owner, repo] = repos.repo.split("/");
@@ -17,7 +17,7 @@ export const checkCodeScanning = async (
         repo,
         page: 1,
         per_page: 1,
-      }
+      },
     );
 
     if (data === undefined || data.length == 0) {
@@ -29,7 +29,7 @@ export const checkCodeScanning = async (
       return false;
     } else {
       core.setFailed(
-        `Something weird is going on with scanning repos for code scanning analysis: ${e}`
+        `Something weird is going on with scanning repos for code scanning analysis: ${e}`,
       );
       throw e;
     }

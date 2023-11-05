@@ -5,7 +5,7 @@ import {
 } from "../../../types/common/main";
 
 export const getUniqueDataSet = async (
-  repositories: ReposWithGHASAC[]
+  repositories: ReposWithGHASAC[],
 ): Promise<BillingAPIFunctionResponse> => {
   const usersToRepos: ArrayOfUsersToRepos = [];
 

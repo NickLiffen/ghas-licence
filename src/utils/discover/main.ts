@@ -20,12 +20,12 @@ import {
 export const run = async (
   client: Octokit,
   org: string,
-  level: string
+  level: string,
 ): Promise<ReposWithGHASAC[]> => {
   /* Getting all our billing information */
   const verboseBillingData = (await billing(
     client,
-    org
+    org,
   )) as BillingAPIFunctionResponse;
 
   /* Verbose Repos are all repos with a GHAS active committer on. May not be unique GHAS unique active mommitters. */

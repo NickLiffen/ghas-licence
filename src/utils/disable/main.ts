@@ -3,7 +3,7 @@ import { Octokit } from "../general";
 
 export const run = async (
   client: Octokit,
-  data: ReposWithGHASAC[]
+  data: ReposWithGHASAC[],
 ): Promise<void> => {
   try {
     for await (const { repo } of data) {

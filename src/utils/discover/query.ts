@@ -10,12 +10,12 @@ import {
 
 const query = async (
   requestParams: RequestParams,
-  client: Octokit
+  client: Octokit,
 ): Promise<object> => {
   try {
     return await client.request(
       "GET /orgs/{org}/settings/billing/advanced-security",
-      requestParams
+      requestParams,
     );
   } catch (e: any) {
     core.error("Error in making billing API Call", e);
@@ -29,7 +29,7 @@ export const billing = async (
   githubOrg: string,
   p = 1 as number,
   reposWithGHASAC = [] as ReposWithGHASAC[],
-  ac = 0 as number
+  ac = 0 as number,
 ): Promise<BillingAPIFunctionResponse> => {
   const requestParams = {
     org: githubOrg as string,
@@ -49,7 +49,7 @@ export const billing = async (
   if (data.repositories) {
     /* Filtering out any repository that has 0 AC*/
     const postiveAC = data.repositories.filter(
-      (repo) => repo.advanced_security_committers > 0
+      (repo) => repo.advanced_security_committers > 0,
     );
 
     /* Building the Array that I would like stored*/

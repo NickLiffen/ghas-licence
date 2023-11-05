@@ -7,7 +7,7 @@ import { promises as fs } from "fs";
 
 export const uploadArtefact = async (
   reposWeThinkWeCanRemoveGHASOn: ReposWithGHASAC[],
-  level: string
+  level: string,
 ): Promise<void> => {
   const { GITHUB_WORKFLOW, GITHUB_WORKSPACE } = process.env;
   try {
@@ -23,15 +23,15 @@ export const uploadArtefact = async (
     await artifactClient.uploadArtifact(
       `${+new Date()}-${level}-repos.json`,
       [fileName],
-      `${GITHUB_WORKSPACE}`
+      `${GITHUB_WORKSPACE}`,
     );
   } catch (e: any) {
     core.error(
       "There was an error writing file to disk or uploading to the workflow run artefact section. The error is:",
-      e
+      e,
     );
     core.setFailed(
-      "There was an error writing file to disk or uploading to the workflow run artefact section"
+      "There was an error writing file to disk or uploading to the workflow run artefact section",
     );
     throw e;
   }

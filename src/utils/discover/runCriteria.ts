@@ -6,7 +6,7 @@ import { Octokit } from "../general";
 
 export const runCriteria = async (
   dataToUse: ReposWithGHASAC[],
-  client: Octokit
+  client: Octokit,
 ): Promise<ReposWithGHASAC[]> => {
   /* This is the dataset that we think we are going to be able to clean GHAS up on */
   const reposWeThinkWeCanRemoveGHASOn = [] as ReposWithGHASAC[];
